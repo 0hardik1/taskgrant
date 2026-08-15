@@ -1,0 +1,14 @@
+{
+  "scenario": "S092",
+  "verdict": "pass",
+  "invariant": "none",
+  "expected": "release_grant with an invalid outcome value 'meh' is rejected at the boundary (only succeeded/failed/abandoned accepted), no release record written and the grant left unmutated.",
+  "observed": "release_grant outcome 'meh' returned status error, error_code INVALID_ARGUMENT, detail 'outcome: must be succeeded, failed, or abandoned' (mcp-call exit 0, a normal tool result). Audit show for the grant contained only the grant_decision record with no release record, so the invalid attempt did not mutate state. A control release with outcome 'succeeded' then returned status released with released_at set, proving the release path itself works and only the invalid enum was rejected.",
+  "evidence": "mcp-call request_grant (s3.read-prefix, acme-invoices-prod, 2026/) -> status active, grant_id 01M01KBNA7DKQZQ9TWTV962T1B. mcp-call release_grant {outcome:'meh'} -> {\"detail\":\"outcome: must be succeeded, failed, or abandoned\",\"error_code\":\"INVALID_ARGUMENT\",\"status\":\"error\"} EXIT=0. taskgrant audit show --json 01M01KBNA7DKQZQ9TWTV962T1B -> single record seq 303 kind grant_decision, outcome auto_approved, no release record present. mcp-call release_grant {outcome:'succeeded'} -> {\"grant_id\":\"01M01KBNA7DKQZQ9TWTV962T1B\",\"outcome\":\"succeeded\",\"released_at\":\"2026-08-15T02:17:57Z\",\"status\":\"released\"} EXIT=0.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{... s3.read-prefix acme-invoices-prod 2026/ ...}' -> status active, grant_id 01M01KBNA7DKQZQ9TWTV962T1B",
+    "mcp-call --tool release_grant --args '{\"grant_id\":\"01M01KBNA7DKQZQ9TWTV962T1B\",\"outcome\":\"meh\",\"note\":\"S092 invalid outcome boundary\"}' -> INVALID_ARGUMENT, status error, exit 0",
+    "taskgrant audit show --config config.yaml --json 01M01KBNA7DKQZQ9TWTV962T1B -> only grant_decision record, no release record",
+    "mcp-call --tool release_grant --args '{\"grant_id\":\"01M01KBNA7DKQZQ9TWTV962T1B\",\"outcome\":\"succeeded\",\"note\":\"S092 control valid release\"}' -> status released, released_at set"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "scenario": "S078",
+  "verdict": "pass",
+  "invariant": "I3",
+  "expected": "The MCP tool list contains exactly the five spec tools (request_grant, get_grant, explain_grant, list_capabilities, release_grant) and nothing admin-shaped; approval must not be reachable over MCP.",
+  "observed": "list-tools returned exactly the five spec tools and no admin surface; every admin-shaped tools/call (approve, deny, approvals, approve_grant, revoke, admin) was rejected as 'unknown tool' (exit 3). Approval is only reachable over the admin unix socket, not MCP.",
+  "evidence": "mcp-call --list-tools (agent-078) returned exactly: explain_grant, get_grant, list_capabilities, release_grant, request_grant (5 tools, none admin/approval-shaped). Probing admin-shaped names over tools/call: approve -> 'unknown tool \"approve\"' exit 3; deny -> 'unknown tool \"deny\"' exit 3; approvals -> unknown tool, exit 3; approve_grant -> unknown tool, exit 3; revoke -> unknown tool, exit 3; admin -> unknown tool, exit 3. No MCP path mutates approval state.",
+  "commands": [
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-078.token --list-tools",
+    "for t in approve deny approvals approve_grant revoke admin; do /Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-078.token --tool $t --args '{\"grant_id\":\"01TESTAPPROVAL\"}'; done"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "scenario": "S031",
+  "verdict": "pass",
+  "invariant": "I1",
+  "expected": "request_grant with s3.read-prefix and hostile prefix '?ata/' (a wildcard glob char) must be rejected with INVALID_PARAM naming the exact param and expected shape, never compiled into a policy, and no STS mint should occur.",
+  "observed": "Broker returned status needs_clarification with clarification.code INVALID_PARAM, missing_params naming s3.read-prefix.prefix, expected_shape 'contains a wildcard character; expected matching ^[A-Za-z0-9_/.=-]{1,512}$ (one trailing * allowed)'. Audit show has exactly one record, kind=clarification, outcome=needs_clarification, INVALID_PARAM; no minted_at, no access_key_id, no STS/policy block. Task/reason stored verbatim. mcp-call exit 0.",
+  "evidence": "REQUEST: mcp-call --tool request_grant --args {capabilities:[{id:s3.read-prefix, params:{bucket:acme-invoices-prod, prefix:'?ata/'}}]} as agent-031 -> is_error:false, status:needs_clarification, clarification.code:INVALID_PARAM, missing_params[0]={capability:s3.read-prefix, name:prefix, expected_shape:'contains a wildcard character; expected matching ^[A-Za-z0-9_/.=-]{1,512}$ (one trailing * allowed)'}, grant_id:01M01K01WXJ7K2P83PQ0B8CQYW, EXIT=0. AUDIT: taskgrant audit show --json 01M01K01WXJ7K2P83PQ0B8CQYW -> single record seq 62, kind:clarification, outcome:needs_clarification, body.clarification.code:INVALID_PARAM, body.clarification.missing_params:[s3.read-prefix.prefix], matcher confidence 1 (structured hint), NO minted_at / NO access_key_id / NO policy or STS block in the record; task and reason (containing '?ata/') stored verbatim; token_fingerprint a33abd82.",
+  "commands": [
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-031.token --tool request_grant --args '{\"task\":\"Read S3 objects under a prefix in acme-invoices-prod for scenario S031\",\"reason\":\"scenario S031, hostile-params prefix ?ata/\",\"profile\":\"default\",\"capabilities\":[{\"id\":\"s3.read-prefix\",\"params\":{\"bucket\":\"acme-invoices-prod\",\"prefix\":\"?ata/\"}}],\"duration_seconds\":900}'",
+    "/Users/hardik/Development/taskgrant/harness/bin/taskgrant audit show --config /Users/hardik/Development/taskgrant/harness/config.yaml --json 01M01K01WXJ7K2P83PQ0B8CQYW"
+  ]
+}

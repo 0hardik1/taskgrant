@@ -1,0 +1,14 @@
+{
+  "scenario": "S070",
+  "verdict": "pass",
+  "invariant": "I4",
+  "expected": "explain_grant on an approved grant shows the approver as the role 'human' and never leaks the OS username of the admin who approved over the unix socket.",
+  "observed": "Request on approval-gated profile parked pending_approval (grant 01M01K81Q7MF1EFDWN0JS5T5BV); admin CLI approve minted it (CLI locally printed 'by hardik'); explain_grant from the agent returned approver='human', status active, outcome approved, and contained zero occurrences of the OS username 'hardik'.",
+  "evidence": "request_grant (profile approval-gated, logs.read) -> status pending_approval, grant 01M01K81Q7MF1EFDWN0JS5T5BV. taskgrant approve --config config.yaml -> 'grant ...: approved (minted) by hardik' (admin-side only). mcp-call explain_grant --raw -> {\"approver\":\"human\",\"outcome\":\"approved\",\"status\":\"active\",...}. grep -c hardik on full explain_grant JSON = 0.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{profile: approval-gated, capabilities:[logs.read /aws/lambda/invoice-processor], duration_seconds:900}' -> pending_approval, grant 01M01K81Q7MF1EFDWN0JS5T5BV",
+    "taskgrant approve --config config.yaml --note 'scenario S070 approval-identity check' 01M01K81Q7MF1EFDWN0JS5T5BV -> approved (minted) by hardik",
+    "mcp-call --tool explain_grant --args '{\"grant_id\":\"01M01K81Q7MF1EFDWN0JS5T5BV\"}' --raw -> approver=\"human\", status=active, outcome=approved",
+    "grep -c hardik s070_explain.json -> 0"
+  ]
+}

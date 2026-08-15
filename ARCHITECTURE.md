@@ -7,7 +7,9 @@ for attribution, returns the temporary credentials, and records every decision (
 agent's justification) in a tamper-evident decision log.
 
 This document is the v1 design. It was produced by parallel component designs plus an
-adversarial review; the review's accepted findings are already folded in. Status: pre-code.
+adversarial review; the review's accepted findings are already folded in. Status: implemented.
+Section 16 lists what v1 covers; see `README.md` to run it and `harness/REPORT.md` for the
+adversarial test results.
 
 Module: `github.com/0hardik1/taskgrant`. Language: Go (single static binary).
 

@@ -1,0 +1,12 @@
+{
+  "scenario": "S016",
+  "verdict": "pass",
+  "invariant": "none",
+  "expected": "Free text with no capability hints ('query the orders table for recent rows') must never silently mint; the broker returns either needs_clarification with candidate ids or a NEEDS_STRUCTURED_HINTS/NO_MATCH denial, and nothing is minted.",
+  "observed": "request_grant returned exit 0 with status=denied, denial_code=NEEDS_STRUCTURED_HINTS (rules matcher scored dynamodb.query at confidence 0.308, below the 0.50 no-match floor, so treated as no match, path (b) of the expect). No grant minted: audit record outcome=denied, denied_by=synthesizer, no minted_at and no access_key_id. Task stored verbatim.",
+  "evidence": "mcp-call request_grant (agent-016, profile default, no capabilities hint) -> {\"denial_code\":\"NEEDS_STRUCTURED_HINTS\",\"grant_id\":\"01M01784T2Z1RX0CTBVFZKV2AB\",\"status\":\"denied\"}, exit 0. taskgrant audit show --json 01M01784T2Z1RX0CTBVFZKV2AB -> kind=grant_decision, outcome=denied, denied_by=synthesizer, matcher.candidates=[{capability_id:dynamodb.query, confidence:0.308, rationale:'keyword match: query'}], denial_code=NEEDS_STRUCTURED_HINTS; no minted_at / access_key_id fields present; task='query the orders table for recent rows' stored verbatim.",
+  "commands": [
+    "mcp-call --url http://127.0.0.1:8770/mcp --token-file tokens/agent-016.token --tool request_grant --args '{\"task\":\"query the orders table for recent rows\",\"reason\":\"scenario S016, keyword-match family\",\"profile\":\"default\"}'",
+    "taskgrant audit show --config config.yaml --json 01M01784T2Z1RX0CTBVFZKV2AB"
+  ]
+}

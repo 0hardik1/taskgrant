@@ -1,0 +1,12 @@
+{
+  "scenario": "S017",
+  "verdict": "pass",
+  "invariant": "I1",
+  "expected": "Free-text request whose text matches nothing in the catalog (astrology forecast) with no structured hints must be denied with NO_MATCH or NEEDS_STRUCTURED_HINTS and never mint a grant.",
+  "observed": "request_grant (no capabilities hints) returned status=denied, denial_code=NEEDS_STRUCTURED_HINTS, detail pointing at list_capabilities; grant_id 01M0178AWXJMEKR2506KWPCFVF was recorded as a denied grant_decision (denied_by=synthesizer, matcher=rules) with no minted_at and no access_key_id, so nothing was minted. mcp-call exited 0 (normal denial result), broker reachable.",
+  "evidence": "mcp-call request_grant task=astrology forecast, no capabilities, profile=default -> {\"denial_code\":\"NEEDS_STRUCTURED_HINTS\",\"status\":\"denied\",\"grant_id\":\"01M0178AWXJMEKR2506KWPCFVF\"} EXIT=0. taskgrant audit show --json 01M0178AWXJMEKR2506KWPCFVF -> single grant_decision record: outcome=denied, denied_by=synthesizer, denial_code=NEEDS_STRUCTURED_HINTS, matcher=rules, token_fingerprint=cd3a85e5, transport=http; no minted_at / access_key_id / STS block present, task stored verbatim.",
+  "commands": [
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-017.token --tool request_grant --args '{\"task\":\"Provide my daily astrology horoscope forecast: what do the stars and planets say about my zodiac sign today\",\"reason\":\"scenario S017 keyword-match no-match probe\",\"profile\":\"default\"}'",
+    "/Users/hardik/Development/taskgrant/harness/bin/taskgrant audit show --config /Users/hardik/Development/taskgrant/harness/config.yaml --json 01M0178AWXJMEKR2506KWPCFVF"
+  ]
+}

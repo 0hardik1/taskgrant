@@ -1,0 +1,14 @@
+{
+  "scenario": "S046",
+  "verdict": "pass",
+  "invariant": "I1",
+  "expected": "request_grant with hints but the required s3.read-prefix 'prefix' omitted must return needs_clarification naming 'prefix' with its expected shape; supplying the value on the retry_token resolves the same grant to active, with both rounds sharing one grant_id (5.6).",
+  "observed": "Round 1 returned status needs_clarification, code MISSING_PARAM, missing_params [s3.read-prefix.prefix] with expected_shape '^[A-Za-z0-9_/.=-]{1,512}$ (one trailing * allowed)', candidate s3.read-prefix, and a signed retry_token (round 1). Retrying with the same retry_token and prefix '2026/' minted status active on the SAME grant_id 01M01K2G25KSAM6VYBSQNRWRJY, credentials delivered once, assumed-role ARN arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-046-01M01K2G25KSAM6VYBSQNRWRJY. Audit shows both records (kind=clarification then kind=grant_decision auto_approved) under the one grant_id with exhaustion_limit 2; all guardrails G0-G8 pass.",
+  "evidence": "request_grant (hints bucket=acme-invoices-prod, prefix omitted) -> {\"status\":\"needs_clarification\",\"grant_id\":\"01M01K2G25KSAM6VYBSQNRWRJY\",\"clarification\":{\"code\":\"MISSING_PARAM\",\"missing_params\":[{\"capability\":\"s3.read-prefix\",\"name\":\"prefix\",\"expected_shape\":\"matching ^[A-Za-z0-9_/.=-]{1,512}$ (one trailing * allowed)\"}],\"round\":1,\"retry_token\":\"eyJnIjoiMDFNMDFLMkcyNUtTQU02VllCU1FOUldSSlki...\"}}. retry with retry_token + prefix=2026/ -> {\"status\":\"active\",\"grant_id\":\"01M01K2G25KSAM6VYBSQNRWRJY\",\"credentials\":{secret present, value redacted},\"scope_summary\":\"s3.read-prefix v3; 3 actions\"}. sts get-caller-identity with minted creds -> Arn arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-046-01M01K2G25KSAM6VYBSQNRWRJY. audit show --json 01M01K2G25KSAM6VYBSQNRWRJY -> seq 88 kind=clarification outcome=needs_clarification (round 1, exhaustion_limit 2), seq 90 kind=grant_decision outcome=auto_approved, both grant_id 01M01K2G25KSAM6VYBSQNRWRJY, agent-046; policy_json has no wildcard Action, aws:RequestedRegion + aws:ResourceAccount pinned, source_identity tg-01M01K2G25KSAM6VYBSQNRWRJY.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{...capabilities:[{id:s3.read-prefix,params:{bucket:acme-invoices-prod}}]...}' (prefix omitted)",
+    "mcp-call --tool request_grant --args '{...params:{bucket:acme-invoices-prod,prefix:2026/}...,retry_token:...}' --raw",
+    "AWS_ACCESS_KEY_ID/SECRET/SESSION_TOKEN=<minted> awslocal sts get-caller-identity",
+    "taskgrant audit show --config config.yaml --json 01M01K2G25KSAM6VYBSQNRWRJY"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "scenario": "S033",
+  "verdict": "pass",
+  "invariant": "I1",
+  "expected": "s3.read-prefix with hostile prefix '${aws:username}/' must be rejected with INVALID_PARAM naming the exact param and expected shape, never compiled into a policy, with the attempt audited and no STS mint.",
+  "observed": "request_grant returned status needs_clarification, clarification.code INVALID_PARAM, missing_params names s3.read-prefix.prefix with expected_shape 'contains ${; expected matching ^[A-Za-z0-9_/.=-]{1,512}$ (one trailing * allowed)'. No mint. Audit record kind=clarification, outcome=needs_clarification, no minted_at, no access_key_id, no STS block; the hostile prefix is stored verbatim in hints only.",
+  "evidence": "mcp-call request_grant (s3.read-prefix, bucket acme-invoices-prod, prefix '${aws:username}/', profile default) -> {\"status\":\"needs_clarification\",\"clarification\":{\"code\":\"INVALID_PARAM\",\"missing_params\":[{\"capability\":\"s3.read-prefix\",\"name\":\"prefix\",\"expected_shape\":\"contains ${; expected matching ^[A-Za-z0-9_/.=-]{1,512}$ (one trailing * allowed)\"}],\"round\":1},\"grant_id\":\"01M01K0G3T670E7DHS7RMZY663\"}. taskgrant audit show --json 01M01K0G3T670E7DHS7RMZY663 -> seq 68, kind=clarification, outcome=needs_clarification, body has hints.prefix='${aws:username}/' verbatim, matcher.confidence=1 structured, NO minted_at/access_key_id/sts fields.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{...capabilities:[{id:s3.read-prefix,params:{bucket:acme-invoices-prod,prefix:${aws:username}/}}],duration_seconds:900}'",
+    "taskgrant audit show --config config.yaml --json 01M01K0G3T670E7DHS7RMZY663"
+  ]
+}

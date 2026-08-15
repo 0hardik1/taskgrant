@@ -1,0 +1,14 @@
+{
+  "scenario": "S034",
+  "verdict": "pass",
+  "invariant": "I1",
+  "expected": "s3.read-prefix with a 513-char prefix (grammar caps at 512) must be rejected with INVALID_PARAM naming the exact param and expected shape, with no policy compiled and no STS mint; the audit log records the attempt.",
+  "observed": "request_grant returned status needs_clarification, clarification.code INVALID_PARAM, missing_params names prefix on s3.read-prefix with expected_shape 'longer than 512 characters; expected matching ^[A-Za-z0-9_/.=-]{1,512}$ (one trailing * allowed)'. A retry_token and grant_id 01M01K14P2N1EXK2652JM8AG8A were returned. mcp-call exit 0. Audit show yields exactly one record, kind=clarification, outcome=needs_clarification, code INVALID_PARAM, missing_params [s3.read-prefix.prefix]; no minted_at, no access_key_id, no policy_json, no packed_policy_size present (grep for mint markers/ASIA = 0 hits), proving no STS call on this path.",
+  "evidence": "REQUEST: mcp-call --tool request_grant as agent-034, capabilities=[{id:s3.read-prefix, params:{bucket:acme-invoices-prod, prefix: 512x'a'+'/' = 513 chars}}], duration 900. RESULT (exit 0): structured_content.status=needs_clarification; clarification.code=INVALID_PARAM; missing_params=[{capability:s3.read-prefix, name:prefix, expected_shape:'longer than 512 characters; expected matching ^[A-Za-z0-9_/.=-]{1,512}$ (one trailing * allowed)'}]; candidates=[s3.read-prefix]; grant_id=01M01K14P2N1EXK2652JM8AG8A; retry_token present. AUDIT: taskgrant audit show --json 01M01K14P2N1EXK2652JM8AG8A -> single record seq 76, kind=clarification, outcome=needs_clarification, agent_id=agent-034, profile=default, body.clarification.code=INVALID_PARAM, body.clarification.missing_params=[s3.read-prefix.prefix], task/reason stored verbatim, token_fingerprint 532e67b3, transport http; no mint fields (minted_at/access_key_id/policy_json/packed_policy_size all absent). grep -Eic 'minted_at|access_key_id|ASIA' over audit JSON = 0 hits.",
+  "commands": [
+    "python3 -c 'prefix = \"a\"*512 + \"/\"  # 513 chars' -> wrote scratchpad/s034-args.json",
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-034.token --tool request_grant --args-file scratchpad/s034-args.json  # exit 0, status needs_clarification, code INVALID_PARAM",
+    "/Users/hardik/Development/taskgrant/harness/bin/taskgrant audit show --config /Users/hardik/Development/taskgrant/harness/config.yaml --json 01M01K14P2N1EXK2652JM8AG8A  # one clarification record, no mint fields",
+    "audit show ... | grep -Eic 'minted_at|access_key_id|ASIA'  # 0 hits"
+  ]
+}

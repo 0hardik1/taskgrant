@@ -1,0 +1,13 @@
+{
+  "scenario": "S085",
+  "verdict": "pass",
+  "invariant": "G7",
+  "expected": "request_grant with duration_seconds omitted defaults to 900 seconds; grant mints active and the audit record shows granted 900 via the min-clamp chain, floor/default 900.",
+  "observed": "Grant 01M01KAX27ND2S6DSKAJ3AA0GQ minted status active with no duration_seconds in the request; audit granted_duration_seconds=900; clamp detail 'effective 900s = min(request 900s, capability cap 900s, profile cap 1800s, global cap 3600s), floor 900s'; credential expiration 02:32:09.963Z minus minted_at 02:17:09.966702Z equals 900s exactly.",
+  "evidence": "request_grant (s3.read-prefix, bucket=acme-invoices-prod, prefix=2026/, NO duration_seconds) -> status active, grant_id 01M01KAX27ND2S6DSKAJ3AA0GQ, expires_at 2026-08-15T02:32:09Z. audit show --json: granted_duration_seconds=900; guardrail G7.duration-clamp detail 'effective 900s = min(request 900s, capability cap 900s, profile cap 1800s, global cap 3600s), floor 900s'; minted_at 2026-08-15T02:17:09.966702Z, expiration 2026-08-15T02:32:09.963Z (delta = 900s). Grant released outcome succeeded.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{...capabilities:[s3.read-prefix bucket=acme-invoices-prod prefix=2026/], no duration_seconds...}' -> status active, grant 01M01KAX27ND2S6DSKAJ3AA0GQ",
+    "taskgrant audit show --config config.yaml --json 01M01KAX27ND2S6DSKAJ3AA0GQ -> granted_duration_seconds=900, G7.duration-clamp detail min(request 900s,...) floor 900s",
+    "mcp-call --tool release_grant --args '{grant_id, outcome:succeeded}'"
+  ]
+}

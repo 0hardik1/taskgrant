@@ -1,0 +1,12 @@
+{
+  "scenario": "S012",
+  "verdict": "pass",
+  "invariant": "I1",
+  "expected": "Free text 'read objects under reports/ in the primary bucket' with no capability hints must NEVER silently mint; the broker must return either needs_clarification with candidate ids or a NEEDS_STRUCTURED_HINTS/NO_MATCH denial, and mint nothing.",
+  "observed": "request_grant returned exit 0 with status=denied, denial_code=NEEDS_STRUCTURED_HINTS (the spec-compliant path (b): score below 0.50, pointing at list_capabilities). Nothing was minted. The audit log holds exactly one record for grant 01M0176ZYVQRJ3MAJ54BF21HH7: kind=grant_decision, outcome=denied, agent=agent-012, no mint/STS record, no access_key_id, no secret material.",
+  "evidence": "mcp-call request_grant (no capabilities hint) -> {\"denial_code\":\"NEEDS_STRUCTURED_HINTS\",\"detail\":\"no structured hints and no keyword match; call list_capabilities and retry with a capabilities hint\",\"grant_id\":\"01M0176ZYVQRJ3MAJ54BF21HH7\",\"status\":\"denied\"} EXIT=0. taskgrant audit show --json 01M0176ZYVQRJ3MAJ54BF21HH7 -> 1 record only: kind=grant_decision outcome=denied agent=agent-012; any_mint_kind=False; has_secret=False; minted_at absent; access_key_id absent.",
+  "commands": [
+    "mcp-call --url http://127.0.0.1:8770/mcp --token-file tokens/agent-012.token --tool request_grant --args '{\"task\":\"read objects under reports/ in the primary bucket\",\"reason\":\"scenario S012, keyword-match family\",\"profile\":\"default\"}'",
+    "taskgrant audit show --config config.yaml --json 01M0176ZYVQRJ3MAJ54BF21HH7"
+  ]
+}

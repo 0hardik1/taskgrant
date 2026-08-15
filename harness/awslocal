@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# awslocal: the real aws CLI pointed at LocalStack, for harness use.
+#
+# Two modes, chosen by the environment:
+#
+#  1. Admin mode (default): no AWS_ACCESS_KEY_ID in the environment, so
+#     the script uses the LocalStack test/test static credentials. Use
+#     this to inspect and verify resources.
+#
+#       harness/awslocal s3 ls s3://acme-invoices-prod/2026/
+#
+#  2. Minted-credential mode: export the three session values a grant
+#     delivered and they pass through untouched. Use this to prove a
+#     minted credential works (or stops working).
+#
+#       AWS_ACCESS_KEY_ID=ASIA... AWS_SECRET_ACCESS_KEY=... \
+#       AWS_SESSION_TOKEN=... harness/awslocal sts get-caller-identity
+#
+# Every invocation adds --endpoint-url and --region unless the caller
+# already passed them.
+
+set -uo pipefail
+
+AWS_BIN="${AWS_BIN:-/opt/homebrew/bin/aws}"
+ENDPOINT="${LOCALSTACK_ENDPOINT:-http://localhost:4566}"
+REGION_DEFAULT="${AWS_DEFAULT_REGION:-us-east-1}"
+
+if [ -z "${AWS_ACCESS_KEY_ID:-}" ]; then
+  # Admin mode: LocalStack's canonical static credentials.
+  export AWS_ACCESS_KEY_ID=test
+  export AWS_SECRET_ACCESS_KEY=test
+  unset AWS_SESSION_TOKEN
+else
+  # Minted-credential mode: whatever the caller exported is used as is.
+  export AWS_ACCESS_KEY_ID
+  export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-}"
+  if [ -n "${AWS_SESSION_TOKEN:-}" ]; then
+    export AWS_SESSION_TOKEN
+  fi
+fi
+
+export AWS_DEFAULT_REGION="$REGION_DEFAULT"
+export AWS_REGION="$REGION_DEFAULT"
+export AWS_PAGER=""
+unset AWS_PROFILE 2>/dev/null || true
+
+extra=()
+case " $* " in
+  *" --endpoint-url "*) ;;
+  *) extra+=(--endpoint-url "$ENDPOINT") ;;
+esac
+case " $* " in
+  *" --region "*) ;;
+  *) extra+=(--region "$REGION_DEFAULT") ;;
+esac
+
+exec "$AWS_BIN" "${extra[@]}" "$@"

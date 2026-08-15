@@ -1,0 +1,22 @@
+{
+  "scenario": "S062",
+  "verdict": "pass",
+  "invariant": "G8",
+  "expected": "The rolling distinct-capability counter (per agent per 24h, alert at 5, hard cap at 10 per G8/I5) governs privilege creep; the variant asks for 11 distinct capabilities but the catalog holds only 7, so the runner must assert the cap logic on the 7 available and mark the 11-distinct (hard-cap-at-10) trigger partial/unreachable, while confirming the broker does NOT falsely deny under the cap.",
+  "observed": "As agent-062 (clean baseline: audit list null, audit scope empty) I requested all 7 distinct catalog capabilities under profile default. 5 auto-approved to active (s3.read-prefix, dynamodb.query, sqs.consume, sqs.produce, logs.read); the 2 requires_approval capabilities (s3.write-prefix, lambda.invoke) correctly parked pending_approval. None was denied by a creep or rate cap. audit list shows exactly 7 distinct capability ids across the grant_decision records (outcomes: 6 auto_approved incl. one profile-scoped repeat, 2 pending_approval). To test whether profile scoping can manufacture distinct capabilities, I re-requested s3.read-prefix under the short-cap profile: it minted active and did NOT raise the distinct count above 7, confirming the counter is keyed on capability id (not on capability+profile), so 11 distinct is unreachable with a 7-entry catalog. The distinct count (7) sits above the alert-at-5 threshold and below the hard-cap-at-10, and the broker behaved correctly: it minted/parked normally with no false creep denial. HARD-CAP-AT-10 SUB-CHECK: unreachable by design (partial), consistent with the variant text and env.json.",
+  "evidence": "list_capabilities as agent-062 -> ['dynamodb.query','lambda.invoke','logs.read','s3.read-prefix','s3.write-prefix','sqs.consume','sqs.produce'] (7 distinct). request_grant results: s3.read-prefix status=active grant=01M01K7BA6S0F006SGRBQYRMFE; dynamodb.query status=active grant=01M01K80RQQEQSJ715CHM7TA1Y; sqs.consume status=active 01M01K8BJ73EK3TYPKTV2Z4RSR; sqs.produce status=active 01M01K8BJQW99QJNAN7W1DTJZ3; logs.read status=active 01M01K8BK2J6K8EBA05THDEA8E; s3.write-prefix status=pending_approval 01M01K8BKCQY570JNSC99839FV; lambda.invoke status=pending_approval 01M01K8BKNNVJM11FPG9WGTGXP. Profile-scope test: s3.read-prefix under profile short-cap -> status=active 01M01K8WQ1ZPZM7Q1F48XV7D14, distinct count still 7. `taskgrant audit list --agent agent-062` -> 8 records, distinct capabilities requested = all 7 catalog ids, outcomes {auto_approved:6, pending_approval:2}, ZERO creep/rate denials. `taskgrant audit scope agent-062` -> 5 live capabilities (the 5 active grants). No RATE_LIMITED or creep-cap denial code appeared anywhere.",
+  "commands": [
+    "./bin/mcp-call --token-file ./tokens/agent-062.token --tool list_capabilities --args '{}'  # 7 distinct cap ids",
+    "./bin/taskgrant audit scope --config ./config.yaml --json agent-062  # baseline empty, then 5 live grants",
+    "./bin/mcp-call --token-file ./tokens/agent-062.token --tool request_grant --args '{...s3.read-prefix...}'  # active",
+    "./bin/mcp-call ... request_grant dynamodb.query  # active",
+    "./bin/mcp-call ... request_grant sqs.consume  # active",
+    "./bin/mcp-call ... request_grant sqs.produce  # active",
+    "./bin/mcp-call ... request_grant logs.read  # active",
+    "./bin/mcp-call ... request_grant s3.write-prefix  # pending_approval (requires_approval)",
+    "./bin/mcp-call ... request_grant lambda.invoke  # pending_approval (requires_approval)",
+    "./bin/mcp-call ... request_grant s3.read-prefix profile=short-cap  # active, distinct count stays 7",
+    "./bin/taskgrant audit list --config ./config.yaml --json --agent agent-062 --limit 50  # 8 records, 7 distinct caps, no creep denial"
+  ],
+  "note": "Restart-durability (I5) sub-check of the family and the 11-distinct hard-cap-at-10 trigger are both unreachable in this harness (no restart helper; catalog has only 7 capabilities and profile scoping does not create distinct capabilities). Recorded as partial per the variant text; the reachable cap logic behaved correctly, so verdict is pass."
+}

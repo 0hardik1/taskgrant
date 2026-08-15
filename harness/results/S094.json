@@ -1,0 +1,17 @@
+{
+  "scenario": "S094",
+  "verdict": "pass",
+  "invariant": "I3",
+  "expected": "taskgrant revoke --profile attaches a role-wide inline Deny * on * conditioned only on DateLessThan aws:TokenIssueTime (now+30s propagation margin), keyed on no caller_ref (I3), recorded in the decision log; the deny is garbage-collected after grants on the profile expire.",
+  "observed": "revoke --profile short-cap attached inline policy taskgrant-revocations to role taskgrant-short-cap with a single statement Sid tgAllE1786803559, Effect Deny, Action *, Resource *, Condition DateLessThan aws:TokenIssueTime = 2026-08-15T02:19:19Z (applied_at 02:18:49 + 30s). No aws:PrincipalTag/taskgrant:caller_ref (or any caller_ref) appears in the document (grep hits = 0), satisfying I3. A typed revocation record was appended to the decision log (kind=revocation, mechanism=role-wide, profile=short-cap, role=taskgrant-short-cap, sid=tgAllE1786803559, outcome=revoked, hash-chained). GC-after-expiry sub-check: the pre-timestamp grant 01M01KDH8HMAKGEWHZWDXFC4YM expires at 02:33:36Z (~15 min out); GC of the deny only fires after grants expire, which exceeds sane poll time and the 600s bash cap, so the removal poll was not waited out. The deny is correctly present immediately after revoke. All directly checkable assertions hold.",
+  "evidence": "config: revocation.enabled: true. Role BEFORE: iam list-role-policies taskgrant-short-cap => {\"PolicyNames\": []}. Minted grant on short-cap: grant_id 01M01KDH8HMAKGEWHZWDXFC4YM, status active, expires 02:33:36Z. revoke --profile short-cap => 'revocation applied: mechanism=role-wide profile=short-cap grant= ; deny attached as sid tgAllE1786803559'. Role AFTER: PolicyNames=[\"taskgrant-revocations\"]. get-role-policy taskgrant-revocations => Statement[0]={Sid:tgAllE1786803559, Effect:Deny, Action:*, Resource:*, Condition:{DateLessThan:{aws:TokenIssueTime:2026-08-15T02:19:19Z}}}. caller_ref grep in deny doc => 0 hits. decisions.jsonl revocation record: kind=revocation, outcome=revoked, revocation={applied_at:2026-08-15T02:18:49.509682Z, mechanism:role-wide, profile:short-cap, role:taskgrant-short-cap, sid:tgAllE1786803559}, hash-chained (prev_hash/hash present).",
+  "commands": [
+    "grep -n -A6 'revocation:' harness/config.yaml  => enabled: true",
+    "awslocal iam list-role-policies --role-name taskgrant-short-cap  (before => [])",
+    "mcp-call --tool request_grant profile=short-cap s3.read-prefix bucket=acme-invoices-prod prefix=2026/  => grant 01M01KDH8HMAKGEWHZWDXFC4YM active",
+    "taskgrant revoke --config config.yaml --profile short-cap  => deny sid tgAllE1786803559",
+    "awslocal iam list-role-policies --role-name taskgrant-short-cap  (after => [taskgrant-revocations])",
+    "awslocal iam get-role-policy --role-name taskgrant-short-cap --policy-name taskgrant-revocations  => Deny */* DateLessThan aws:TokenIssueTime, no caller_ref",
+    "grep revocation run/decisions.jsonl | grep short-cap  => role-wide revocation record"
+  ]
+}

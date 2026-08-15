@@ -1,0 +1,14 @@
+{
+  "scenario": "S073",
+  "verdict": "pass",
+  "invariant": "none",
+  "expected": "get_grant issued by agent-073 against agent-201's real active grant id must return NOT_FOUND with wording byte-identical to the response for a nonexistent id, never FORBIDDEN and never confirming existence (cross-agent isolation, ARCHITECTURE 4.1).",
+  "observed": "agent-073 get_grant on agent-201's real active grant 01M01K3MX28BR84YP0SVAYCGJ8 returned exit 0 with structured_content {\"detail\":\"no such grant\",\"error_code\":\"NOT_FOUND\",\"status\":\"error\"}; get_grant on a nonexistent syntactically-valid ULID returned the identical bytes. Control: owner agent-201 sees the same grant as status active (expires 2026-08-15T02:28:23Z), proving the id is real, not merely absent.",
+  "evidence": "REAL=01M01K3MX28BR84YP0SVAYCGJ8 (agent-201 auto_approved mint, audit seq 103). mcp-call get_grant as agent-073 on REAL -> {\"detail\":\"no such grant\",\"error_code\":\"NOT_FOUND\",\"status\":\"error\"} EXIT=0. mcp-call get_grant as agent-073 on 01M0000000000000000000FAKE -> identical {\"detail\":\"no such grant\",\"error_code\":\"NOT_FOUND\",\"status\":\"error\"} EXIT=0. Byte-identical, no FORBIDDEN, no existence leak. Control: mcp-call get_grant as agent-201 on REAL -> status active, grant_id 01M01K3MX28BR84YP0SVAYCGJ8, s3.read-prefix, expires 2026-08-15T02:28:23Z EXIT=0.",
+  "commands": [
+    "taskgrant audit list --config config.yaml --json --agent agent-201 --limit 50  (found real active grant 01M01K3MX28BR84YP0SVAYCGJ8)",
+    "mcp-call --token-file tokens/agent-073.token --tool get_grant --args '{\"grant_id\":\"01M01K3MX28BR84YP0SVAYCGJ8\"}'",
+    "mcp-call --token-file tokens/agent-073.token --tool get_grant --args '{\"grant_id\":\"01M0000000000000000000FAKE\"}'",
+    "mcp-call --token-file tokens/agent-201.token --tool get_grant --args '{\"grant_id\":\"01M01K3MX28BR84YP0SVAYCGJ8\"}'  (control, owner sees active)"
+  ]
+}

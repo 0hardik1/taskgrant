@@ -1,0 +1,13 @@
+{
+  "scenario": "S032",
+  "verdict": "pass",
+  "invariant": "I1",
+  "expected": "A hostile s3.read-prefix param value (prefix '2026/ archive' containing whitespace) must be rejected with INVALID_PARAM (or MISSING_PARAM) naming the exact param and expected shape, never compiled into a policy, with no STS mint (no minted_at, no access_key_id) in the audit record.",
+  "observed": "request_grant returned exit 0 with status needs_clarification, clarification.code INVALID_PARAM, missing_params[0].name 'prefix' and expected_shape 'contains whitespace; expected matching ^[A-Za-z0-9_/.=-]{1,512}$ (one trailing * allowed)', plus a candidate s3.read-prefix and a retry_token. The single audit record for grant 01M01K0AWH3MKWZW9Q13332K21 has outcome needs_clarification with no minted_at and no access_key_id; the record blob contains no secret_access_key or session_token. No policy was compiled and no STS call occurred.",
+  "evidence": "request_grant (agent-032, profile default, s3.read-prefix bucket=acme-invoices-prod prefix='2026/ archive'): is_error=false, status=needs_clarification, clarification.code=INVALID_PARAM, missing_params=[{capability:s3.read-prefix, name:prefix, expected_shape:'contains whitespace; expected matching ^[A-Za-z0-9_/.=-]{1,512}$ (one trailing * allowed)'}], grant_id=01M01K0AWH3MKWZW9Q13332K21, EXIT=0. audit show --json 01M01K0AWH3MKWZW9Q13332K21: exactly one record, kind/outcome=needs_clarification, keys=[seq,record_id,grant_id,agent_id,ts,kind,outcome,profile,task,reason,body,prev_hash,hash]; python checks -> has minted_at: False, access_key_id in blob: False, secret in blob: False, session_token in blob: False; body.code=INVALID_PARAM.",
+  "commands": [
+    "lsof -nP -iTCP:8770 -sTCP:LISTEN  (broker PID 80039 listening); test -S run/admin.sock -> socket ok",
+    "./bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file ./tokens/agent-032.token --tool request_grant --args '{\"task\":\"...\",\"reason\":\"scenario S032, hostile-params whitespace prefix\",\"profile\":\"default\",\"capabilities\":[{\"id\":\"s3.read-prefix\",\"params\":{\"bucket\":\"acme-invoices-prod\",\"prefix\":\"2026/ archive\"}}],\"duration_seconds\":900}'",
+    "./bin/taskgrant audit show --config ./config.yaml --json 01M01K0AWH3MKWZW9Q13332K21"
+  ]
+}

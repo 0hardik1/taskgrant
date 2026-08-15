@@ -1,0 +1,15 @@
+{
+  "scenario": "S005",
+  "verdict": "pass",
+  "invariant": "I2",
+  "expected": "request_grant with structured sqs.consume hint (queue=invoice-events, profile default) auto-approves and mints a real STS session; policy carries only the enumerated sqs.consume actions with the rendered queue ARN, no wildcard in Action (I2), aws:RequestedRegion condition present (G5), SourceIdentity is tg-<grant_ulid>, and the audit record is complete.",
+  "observed": "Grant 01M0176ZWRT30DZRG2XHPPVCTA returned status active with credentials present exactly once (delivered in the request_grant response). Policy = Action [sqs:DeleteMessage, sqs:GetQueueAttributes, sqs:ReceiveMessage], Resource arn:aws:sqs:*:*:invoice-events, Condition StringEquals aws:RequestedRegion=us-east-1 and aws:ResourceAccount=000000000000; no wildcard in Action. Minted credential sts get-caller-identity returned assumed-role ARN arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-005-01M0176ZWRT30DZRG2XHPPVCTA, proving the mint path is real. source_identity=tg-01M0176ZWRT30DZRG2XHPPVCTA. audit show carried full record: outcome auto_approved, all G0-G8 guardrails pass, policy_chars 302, granted_duration 900s, token_fingerprint 0c3da50e, transport http. release_grant returned status released. Every element of expect satisfied.",
+  "evidence": "request_grant -> {\"grant_id\":\"01M0176ZWRT30DZRG2XHPPVCTA\",\"status\":\"active\",\"scope_summary\":\"sqs.consume v1; 3 actions; expires 2026-08-14T23:00:18Z\",\"credentials\":{secret present, value redacted}}. explain/audit policy_json: {\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"TgSqsConsume0\",\"Effect\":\"Allow\",\"Action\":[\"sqs:DeleteMessage\",\"sqs:GetQueueAttributes\",\"sqs:ReceiveMessage\"],\"Resource\":\"arn:aws:sqs:*:*:invoice-events\",\"Condition\":{\"StringEquals\":{\"aws:RequestedRegion\":\"us-east-1\",\"aws:ResourceAccount\":\"000000000000\"}}}]}. sts get-caller-identity (minted creds) -> Arn arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-005-01M0176ZWRT30DZRG2XHPPVCTA. audit show: outcome auto_approved, G0.structure..G8.capability-creep all verdict pass, source_identity tg-01M0176ZWRT30DZRG2XHPPVCTA, policy_chars 302, granted_duration_seconds 900, token_fingerprint 0c3da50e. release_grant -> {\"status\":\"released\",\"outcome\":\"succeeded\"}.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{\"task\":\"Consume messages from the invoice-events queue...\",\"reason\":\"scenario S005, happy-structured sqs.consume\",\"profile\":\"default\",\"capabilities\":[{\"id\":\"sqs.consume\",\"params\":{\"queue\":\"invoice-events\"}}],\"duration_seconds\":900}'",
+    "mcp-call --tool explain_grant --args '{\"grant_id\":\"01M0176ZWRT30DZRG2XHPPVCTA\"}' --raw",
+    "AWS_ACCESS_KEY_ID=... AWS_SESSION_TOKEN=... awslocal sts get-caller-identity",
+    "taskgrant audit show --config config.yaml --json 01M0176ZWRT30DZRG2XHPPVCTA",
+    "mcp-call --tool release_grant --args '{\"grant_id\":\"01M0176ZWRT30DZRG2XHPPVCTA\",\"outcome\":\"succeeded\",\"note\":\"scenario S005 complete\"}' --raw"
+  ]
+}

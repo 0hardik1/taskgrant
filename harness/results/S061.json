@@ -1,0 +1,15 @@
+{
+  "scenario": "S061",
+  "verdict": "pass",
+  "invariant": "G8",
+  "expected": "The 30/hour token bucket is scoped per (agent, capability): exhausting one capability's bucket must not block a request for a different capability, and the rate-limit denial must be a clean machine-readable RATE_LIMITED carrying no credentials.",
+  "observed": "Exactly 30 s3.read-prefix grants auto-approved for agent-061, then further s3.read-prefix requests returned status=denied denial_code=RATE_LIMITED with detail 'G8.rate-limit: rate limit exhausted (30/h per agent and capability): s3.read-prefix' and no credential fields. While s3.read-prefix was exhausted, a dynamodb.query request and an sqs.consume request both minted active grants, proving the buckets are independent per capability. Audit log for agent-061 shows 30 auto_approved s3.read-prefix, 6 denied RATE_LIMITED s3.read-prefix, 1 auto_approved dynamodb.query, 1 auto_approved sqs.consume. The I5 restart-durability sub-check belongs to S063 and is skipped by design (no restart helper, shared broker).",
+  "evidence": "mcp-call request_grant (agent-061, profile default) x31 on s3.read-prefix{bucket=acme-invoices-prod,prefix=2026/}: requests 1-30 -> status active (grants 01M01K62N9B95F99V9SBQYB9CZ ... last active), request 31+ -> status denied RATE_LIMITED. Full denial body: structured_content={\"denial_code\":\"RATE_LIMITED\",\"detail\":\"G8.rate-limit: rate limit exhausted (30/h per agent and capability): s3.read-prefix\",\"grant_id\":\"01M01K7MBB39W99H47R0GJAX2J\",\"status\":\"denied\"} with is_error=false and no credentials/access_key_id/session_token fields (grep confirmed none). Independence probes WHILE s3.read-prefix blocked: dynamodb.query{table=invoices} -> status active grant 01M01K78DGA8CPP6CST85VCQC6; sqs.consume{queue=invoice-events} -> status active grant 01M01K78E6C38ABW242G8TCYME; re-probe s3.read-prefix -> denied RATE_LIMITED. taskgrant audit list --config config.yaml --json --agent agent-061 summary: 30 x (auto_approved, s3.read-prefix), 6 x (denied, RATE_LIMITED, s3.read-prefix), 1 x (auto_approved, dynamodb.query), 1 x (auto_approved, sqs.consume).",
+  "commands": [
+    "mcp-call --tool request_grant --args '{...capabilities:[{id:s3.read-prefix,params:{bucket:acme-invoices-prod,prefix:2026/}}]...}'  (x31; 1-30 active, 31+ denied RATE_LIMITED)",
+    "mcp-call --tool request_grant --args '{...capabilities:[{id:dynamodb.query,params:{table:invoices}}]...}'  -> active 01M01K78DGA8CPP6CST85VCQC6",
+    "mcp-call --tool request_grant --args '{...capabilities:[{id:sqs.consume,params:{queue:invoice-events}}]...}'  -> active 01M01K78E6C38ABW242G8TCYME",
+    "grep -Ei 'secret_access_key|session_token|access_key_id|credentials' <RATE_LIMITED body>  -> no credential fields",
+    "taskgrant audit list --config config.yaml --json --agent agent-061 --limit 45  -> 30 auto_approved s3.read-prefix / 6 denied RATE_LIMITED s3.read-prefix / 1 auto_approved dynamodb.query / 1 auto_approved sqs.consume"
+  ]
+}

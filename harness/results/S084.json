@@ -1,0 +1,15 @@
+{
+  "scenario": "S084",
+  "verdict": "pass",
+  "invariant": "I4",
+  "expected": "After release_grant, get_grant shows the released state and carries no secret material; secrets appear only once in the original minting response; audit stores access_key_id only.",
+  "observed": "request_grant minted grant 01M01KAXW593MAAW25ZSWTY1WE active with full credentials once; release_grant returned status=released with outcome=succeeded and released_at; get_grant after release returned status=released with no credentials fields; audit show has access_key_id and released state but neither secret_access_key nor session_token; broker.log has 0 hits for the secret value.",
+  "evidence": "request_grant (agent-084, s3.read-prefix acme-invoices-prod/2026/) -> status active, credentials present (access_key_id LSIAQAAAAAAADTHDKDWQ, secret present value redacted). release_grant {grant_id,outcome:succeeded,note} -> {status:released, outcome:succeeded, released_at:2026-08-15T02:17:33Z}. get_grant after release -> {grant_id, status:released} (no credentials/secret/session fields). audit show --json: access_key_id in audit=True, SECRET leaked=False, SESSION TOKEN leaked=False, released mentioned=True. grep secret in broker.log -> 0 hits.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{s3.read-prefix acme-invoices-prod 2026/, profile default, 900s}' -> status active, credentials once, grant 01M01KAXW593MAAW25ZSWTY1WE",
+    "mcp-call --tool release_grant --args '{grant_id,outcome:succeeded,note:S084 done}' -> {status:released, released_at:2026-08-15T02:17:33Z}",
+    "mcp-call --tool get_grant --args '{grant_id}' -> {status:released} (no secrets)",
+    "taskgrant audit show --config config.yaml --json 01M01KAXW593MAAW25ZSWTY1WE -> access_key_id present, secret+session absent, released present",
+    "grep -c '<secret>' run/broker.log -> 0"
+  ]
+}

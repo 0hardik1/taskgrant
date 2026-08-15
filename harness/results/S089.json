@@ -1,0 +1,13 @@
+{
+  "scenario": "S089",
+  "verdict": "pass",
+  "invariant": "G7",
+  "expected": "A request for duration_seconds 86400 must be clamped through the effective = min(request, capability cap 900, profile cap 1800, global cap 3600) chain (floored at 900), granting 900 seconds rather than erroring, with the audit record showing requested 86400 versus granted 900.",
+  "observed": "request_grant with duration_seconds 86400 on profile default returned status active with granted_duration_seconds 900; credential expiration 2026-08-15T02:32:36.27Z is exactly minted_at 2026-08-15T02:17:36.27Z + 900s; the audit record carries requested_duration_seconds 86400, granted_duration_seconds 900, and a G7.duration-clamp verdict. The huge value was never granted; it was clamped, not rejected.",
+  "evidence": "request_grant (duration_seconds 86400, s3.read-prefix bucket acme-invoices-prod prefix 2026/, profile default) exit 0 -> status active, grant_id 01M01KBPRBCN06KQ5FWK1FW52V, expires_at 2026-08-15T02:32:36Z. `date -u` at check time: now 2026-08-15T02:17:43Z. `taskgrant audit show --config config.yaml --json 01M01KBPRBCN06KQ5FWK1FW52V` -> requested_duration_seconds: 86400, granted_duration_seconds: 900, minted_at 2026-08-15T02:17:36.273213Z, expiration 2026-08-15T02:32:36.27Z (delta exactly 900s), verdict name G7.duration-clamp present. release_grant -> status released. Secret and session token values redacted (present in mint response exactly once).",
+  "commands": [
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file tokens/agent-089.token --tool request_grant --args '{\"task\":\"Read the 2026 invoice objects in acme-invoices-prod to total monthly revenue\",\"reason\":\"scenario S089, duration clamp check\",\"profile\":\"default\",\"capabilities\":[{\"id\":\"s3.read-prefix\",\"params\":{\"bucket\":\"acme-invoices-prod\",\"prefix\":\"2026/\"}}],\"duration_seconds\":86400}'  -> exit 0, status active, granted expiration +900s",
+    "/Users/hardik/Development/taskgrant/harness/bin/taskgrant audit show --config /Users/hardik/Development/taskgrant/harness/config.yaml --json 01M01KBPRBCN06KQ5FWK1FW52V  -> requested_duration_seconds 86400, granted_duration_seconds 900, G7.duration-clamp verdict",
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call ... --tool release_grant --args '{\"grant_id\":\"01M01KBPRBCN06KQ5FWK1FW52V\",\"outcome\":\"succeeded\",\"note\":\"S089 done\"}'  -> status released"
+  ]
+}

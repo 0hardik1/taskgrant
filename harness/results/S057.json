@@ -1,0 +1,16 @@
+{
+  "scenario": "S057",
+  "verdict": "pass",
+  "invariant": "I6",
+  "expected": "The same over-budget request sent twice must be denied OVER_BUDGET both times with byte-identical per-capability byte attribution (I6: deterministic compilation under failure), and never mint or coalesce to a wildcard.",
+  "observed": "Both identical requests returned status=denied, denial_code=OVER_BUDGET, with a 266-byte detail string that was byte-for-byte identical across the two calls; the entire response object was identical except for the per-request grant_id ULID (expected). Detail: 'policy is 2958 chars, budget 1748, over by 1210; s3.read-prefix: 1460 chars, over by 1210; s3.write-prefix: 1456 chars, over by 1210' (repeated). No wildcard was emitted (the broker denied instead of coalescing, honoring I2), and the audit record for the denied grant carried outcome=denied with no access_key_id, no session_token/secret, and no minted_at, proving no STS mint occurred. A single s3.read-prefix (512-char prefix) compiles to 1548 chars (calibration mint, released); combining it with a distinct s3.write-prefix (512-char prefix) pushes the policy to 2958 chars, over the 1748 budget. The budget denial fires before approval parking even though s3.write-prefix requires_approval.",
+  "evidence": "Calibration: request_grant 3x s3.read-prefix 512-char prefixes -> minted active grant 01M01K5FF4VP6BYZCVCEVE1FXD (repeated capability ids dedup, per S064); explain_grant policy_json = 1548 chars, no wildcard in Action (['s3:GetObject','s3:GetObjectVersion']); released ('released'). Over-budget A: request_grant [s3.read-prefix prefix=reports/aaa... (512), s3.write-prefix prefix=incoming/bbb... (512)] -> {status:denied, denial_code:OVER_BUDGET, grant 01M01K7Y293MWVTQDB6P7W5FDH, detail 'policy is 2958 chars, budget 1748, over by 1210; s3.read-prefix: 1460 chars, over by 1210; s3.write-prefix: 1456 chars, over by 1210'}. Determinism (S057 core): same args-file sent twice -> resp1 grant 01M01K8AQAYWB7QZ4Z33ZC8QVS, resp2 grant 01M01K8AQPRMQXQ4HRTM8P0VAJ; both status=denied denial_code=OVER_BUDGET; detail bytes 266==266; detail identical:True; full-response-minus-grant_id identical:True. audit show --json 01M01K8AQAYWB7QZ4Z33ZC8QVS: outcome=denied, denial_code=OVER_BUDGET (nested denial), access_key_id present:False, secret/session_token present:False, minted_at=None.",
+  "commands": [
+    "mcp-call --tool request_grant --args-file s057-args.json  (3x s3.read-prefix, 512-char prefixes) -> active grant 01M01K5FF4VP6BYZCVCEVE1FXD",
+    "mcp-call --tool explain_grant 01M01K5FF4VP6BYZCVCEVE1FXD -> policy_json len 1548, Action enumerated (no wildcard)",
+    "mcp-call --tool release_grant 01M01K5FF4VP6BYZCVCEVE1FXD outcome=succeeded -> released",
+    "mcp-call --tool request_grant --args-file s057-ob.json  (s3.read-prefix + s3.write-prefix, both 512-char prefixes) -> denied OVER_BUDGET, detail 266 bytes",
+    "mcp-call --tool request_grant --args-file s057-ob.json  (identical, run twice: resp1.json, resp2.json) -> both denied OVER_BUDGET; detail byte-identical; only grant_id differs",
+    "taskgrant audit show --config config.yaml --json 01M01K8AQAYWB7QZ4Z33ZC8QVS -> outcome=denied, no access_key_id, no secret/session_token, minted_at=None"
+  ]
+}

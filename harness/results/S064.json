@@ -1,0 +1,14 @@
+{
+  "scenario": "S064",
+  "verdict": "pass",
+  "invariant": "G8",
+  "expected": "One grant naming the same capability id (s3.read-prefix) 3 times is deduplicated so it counts once toward the distinct-capability creep counter (G8), not three times.",
+  "observed": "request_grant with s3.read-prefix listed 3x (identical params) minted an active grant 01M01K71C9H32BBH7D2N6SE8D5. The audit record shows the two extra hints merged: 'duplicate capability hint \"s3.read-prefix\" merged, first params win' (x2), G8.capability-count detail '1 capabilities of max 3', and G8.capability-creep detail 'distinct capabilities in 24h: 1 (alert 5, cap 10)'. audit scope for agent-064 lists capabilities: [s3.read-prefix] (single). Duplicates deduped and counted once toward creep, exactly as expected. Note: the request-response explanation.statements listed 2 entries and scope_summary said '3 actions' (action-level expansion), but the creep counter is unambiguously 1.",
+  "evidence": "audit scope --json agent-064 BEFORE: 0 live grants, capabilities []. request_grant profile=default capabilities=[s3.read-prefix x3 same params] -> status active, grant_id 01M01K71C9H32BBH7D2N6SE8D5 (credentials present, values redacted). audit show --json 01M01K71C9H32BBH7D2N6SE8D5 checks: G8.capability-count 'detail: 1 capabilities of max 3'; G8.capability-creep 'detail: distinct capabilities in 24h: 1 (alert 5, cap 10)'; merge notes 'duplicate capability hint \"s3.read-prefix\" merged, first params win' x2. audit scope --json agent-064 AFTER: capabilities: [\"s3.read-prefix\"] (one distinct capability).",
+  "commands": [
+    "taskgrant audit scope --config config.yaml --json agent-064  (before: 0 live grants, capabilities [])",
+    "mcp-call --tool request_grant --args '{profile:default, capabilities:[s3.read-prefix x3 (bucket=acme-invoices-prod, prefix=2026/)], duration_seconds:900}'  (exit 0, status active, grant 01M01K71C9H32BBH7D2N6SE8D5)",
+    "taskgrant audit show --config config.yaml --json 01M01K71C9H32BBH7D2N6SE8D5  (G8.capability-count '1 capabilities of max 3'; G8.capability-creep 'distinct capabilities in 24h: 1'; 'duplicate capability hint merged, first params win' x2)",
+    "taskgrant audit scope --config config.yaml --json agent-064  (after: capabilities [s3.read-prefix])"
+  ]
+}

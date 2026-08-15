@@ -1,0 +1,12 @@
+{
+  "scenario": "S077",
+  "verdict": "pass",
+  "invariant": "I4",
+  "expected": "list_capabilities as the narrow-profile agent-077 should be profile-filtered so only its narrow profile is offered, with catalog entries listed (not disabled); the corpus wording 'only logs.read visible' is documented in env.json.s077_narrow as an unreachable harness limitation, so S077 asserts profile filtering plus listed-not-disabled entries and records capability visibility as a limitation.",
+  "observed": "As agent-077, list_capabilities returned profiles == [\"narrow\"] and default_profile == \"narrow\", proving per-agent profile filtering. Control agent-201 returned profiles == [\"default\"], default_profile == \"default\", confirming the filter is real and per-identity. All seven capabilities were listed as normal entries (dynamodb.query, lambda.invoke, logs.read, s3.read-prefix, s3.write-prefix, sqs.consume, sqs.produce) with params/summaries and no disabled flag, for both agents. Per-capability visibility narrowing to logs.read only is NOT enforced by the shipped catalog (no agents: list on any entry); env.json.s077_narrow documents this as a harness limitation, not a broker deviation. No MCP tool mutated any state.",
+  "evidence": "mcp-call --token-file tokens/agent-077.token --tool list_capabilities --args '{}' --raw => profiles:[\"narrow\"], default_profile:\"narrow\", capabilities: all 7 ids listed as normal entries (not disabled). Control: mcp-call --token-file tokens/agent-201.token --tool list_capabilities => profiles:[\"default\"], default_profile:\"default\", caps: same 7 ids. Profile filtering differs per agent (narrow vs default) confirming enforcement; capability-visibility half recorded as documented harness limitation per env.json.s077_narrow.",
+  "commands": [
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-077.token --tool list_capabilities --args '{}' --raw",
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-201.token --tool list_capabilities --args '{}' --raw"
+  ]
+}

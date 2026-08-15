@@ -1,0 +1,14 @@
+{
+  "scenario": "S075",
+  "verdict": "pass",
+  "invariant": "I2",
+  "expected": "release_grant by agent-075 on agent-201's live grant must return NOT_FOUND (never FORBIDDEN, no existence confirmation), and the grant must remain active for agent-201.",
+  "observed": "release_grant as agent-075 on agent-201's active grant 01M01K9W5A0TP1AD3DBT4Z9GJ5 returned {status:error, error_code:NOT_FOUND, detail:'no such grant'} (exit 0), byte-identical to release_grant on a never-issued ULID control. get_grant as agent-201 afterward still returned status:active, so the cross-agent release did not mutate the owner's grant.",
+  "evidence": "Setup: request_grant as agent-201 (s3.read-prefix, bucket acme-invoices-prod prefix 2026/, default profile) => status active, grant_id 01M01K9W5A0TP1AD3DBT4Z9GJ5. Probe: mcp-call --token-file tokens/agent-075.token --tool release_grant --args '{\"grant_id\":\"01M01K9W5A0TP1AD3DBT4Z9GJ5\",\"outcome\":\"succeeded\",\"note\":\"S075 cross-agent probe\"}' => {\"detail\":\"no such grant\",\"error_code\":\"NOT_FOUND\",\"status\":\"error\"} exit 0. Control: same tool as agent-075 on grant_id 01M0000000000000000000ZZZZ => identical {\"detail\":\"no such grant\",\"error_code\":\"NOT_FOUND\",\"status\":\"error\"}. Verify owner: mcp-call --token-file tokens/agent-201.token --tool get_grant --args '{\"grant_id\":\"01M01K9W5A0TP1AD3DBT4Z9GJ5\"}' => status active, expires 2026-08-15T02:31:36Z.",
+  "commands": [
+    "./bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file ./tokens/agent-201.token --tool request_grant --raw --args '{\"task\":\"S075 isolation probe target\",\"reason\":\"scenario S075 setup\",\"profile\":\"default\",\"capabilities\":[{\"id\":\"s3.read-prefix\",\"params\":{\"bucket\":\"acme-invoices-prod\",\"prefix\":\"2026/\"}}],\"duration_seconds\":900}'  => status active, grant_id 01M01K9W5A0TP1AD3DBT4Z9GJ5",
+    "./bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file ./tokens/agent-075.token --tool release_grant --raw --args '{\"grant_id\":\"01M01K9W5A0TP1AD3DBT4Z9GJ5\",\"outcome\":\"succeeded\",\"note\":\"S075 cross-agent probe\"}'  => NOT_FOUND / no such grant, exit 0",
+    "./bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file ./tokens/agent-075.token --tool release_grant --raw --args '{\"grant_id\":\"01M0000000000000000000ZZZZ\",\"outcome\":\"succeeded\",\"note\":\"control\"}'  => NOT_FOUND / no such grant (identical shape), exit 0",
+    "./bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file ./tokens/agent-201.token --tool get_grant --raw --args '{\"grant_id\":\"01M01K9W5A0TP1AD3DBT4Z9GJ5\"}'  => status active"
+  ]
+}

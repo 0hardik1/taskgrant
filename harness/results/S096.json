@@ -1,0 +1,15 @@
+{
+  "scenario": "S096",
+  "verdict": "pass",
+  "invariant": "none",
+  "expected": "A random 64-hex bearer is rejected before any tool executes with a 401, a constant-shape error body that leaks nothing (no agent enumeration), and a response time comparable to the valid-token path so no timing oracle exists.",
+  "observed": "Random 64-hex bearers returned HTTP/1.1 401 Unauthorized with a fixed 14-byte body 'invalid token' and identical headers (Content-Type text/plain, X-Content-Type-Options: nosniff, Content-Length 14) across every attempt; an all-zero hex bearer produced the byte-identical response. No tool executed. Invalid-path times ~0.0003-0.0007s vs valid initialize (200) ~0.0003s, i.e. comparable sub-millisecond timing with no obvious oracle.",
+  "evidence": "curl -s -i random-64hex bearer -> 'HTTP/1.1 401 Unauthorized / Content-Type: text/plain; charset=utf-8 / X-Content-Type-Options: nosniff / Content-Length: 14 / invalid token'. Second independent random bearer -> identical body 'invalid token'. All-zero 64-hex bearer -> identical 401 header block (Content-Length 14). Timing (http_code time_total): invalid path 401 0.000718 / 401 0.000392 / 401 0.000312 / 401 0.000323 / 401 0.000315; valid path 200 0.000340 / 200 0.000335 / 200 0.000309 / 200 0.000282 / 200 0.000324. Broker confirmed listening on 127.0.0.1:8770 (lsof) before and remained up (valid path returned 200).",
+  "commands": [
+    "lsof -nP -iTCP:8770 -sTCP:LISTEN",
+    "curl -s -i -X POST http://127.0.0.1:8770/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -H \"Authorization: Bearer $(openssl rand -hex 32)\" -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}'",
+    "curl -s -o /dev/null -w '%{http_code} %{time_total}\\n' (loop x5, random-hex bearer, tools/list)",
+    "curl -s -o /dev/null -w '%{http_code} %{time_total}\\n' (loop x5, valid agent-096 bearer, initialize)",
+    "curl -s -D - -o /dev/null ... -H 'Authorization: Bearer 0000...0000' (all-zero hex, constant-shape check)"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "scenario": "S055",
+  "verdict": "pass",
+  "invariant": "G8",
+  "expected": "A single request_grant carrying 4 capabilities is rejected by the max-3-per-grant rule (G8) with a distinct guardrail denial, not OVER_BUDGET, and nothing is minted.",
+  "observed": "request_grant with 4 capabilities returned status=denied, denial_code=GUARDRAIL_VIOLATION, detail 'G8: 4 capabilities requested, maximum 3 per grant' (exit 0, a normal tool result). Audit show confirms outcome=denied, denied_by=synthesizer, denial_code=GUARDRAIL_VIOLATION, no minted_at and no access_key_id/STS block, so no mint occurred. The code is GUARDRAIL_VIOLATION (G8), distinct from OVER_BUDGET.",
+  "evidence": "mcp-call request_grant (agent-055, profile default, caps s3.read-prefix+dynamodb.query+sqs.consume+logs.read) -> {\"denial_code\":\"GUARDRAIL_VIOLATION\",\"detail\":\"G8: 4 capabilities requested, maximum 3 per grant\",\"grant_id\":\"01M01K42C4GGSTGMRA9D491YVH\",\"status\":\"denied\"}. taskgrant audit show --json 01M01K42C4GGSTGMRA9D491YVH -> kind=grant_decision, outcome=denied, denial_code=GUARDRAIL_VIOLATION, denied_by=synthesizer, denial_detail lists the G8 message, no minted_at / access_key_id fields present. token_fingerprint b5d219a1, transport http.",
+  "commands": [
+    "./bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file ./tokens/agent-055.token --tool request_grant --args '{...4 capabilities...}'",
+    "./bin/taskgrant audit show --config ./config.yaml --json 01M01K42C4GGSTGMRA9D491YVH"
+  ]
+}

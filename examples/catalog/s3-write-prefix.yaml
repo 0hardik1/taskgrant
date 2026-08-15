@@ -1,0 +1,21 @@
+id: s3.write-prefix
+version: 1
+summary: Write and delete objects under one prefix of an allowlisted bucket
+match:
+  keywords: [write, upload, put, store, archive, delete]
+  service_prefixes: [s3]
+  examples:
+    - "upload the nightly report to the invoices bucket"
+actions: [s3:PutObject, s3:DeleteObject, s3:ListBucket]
+access_ceiling: Write
+params:
+  bucket:  {type: arn_component, allowlist_ref: s3-buckets}
+  prefix:  {type: path_prefix, pattern: '^[A-Za-z0-9_/.=-]{1,512}$', allow_trailing_wildcard: true}
+resources:
+  - {template: 'arn:aws:s3:::{bucket}',          for_actions: [s3:ListBucket]}
+  - {template: 'arn:aws:s3:::{bucket}/{prefix}*', for_actions: [s3:PutObject, s3:DeleteObject]}
+conditions:
+  - {for_actions: [s3:ListBucket], key: s3:prefix, op: StringLike, value: '{prefix}*'}
+max_duration_seconds: 900
+requires_approval: true
+managed_policy: false

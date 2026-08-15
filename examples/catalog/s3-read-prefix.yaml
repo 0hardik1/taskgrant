@@ -1,0 +1,21 @@
+id: s3.read-prefix
+version: 3
+summary: Read objects under one prefix of an allowlisted bucket
+match:
+  keywords: [read, download, fetch, get, list]
+  service_prefixes: [s3]
+  examples:
+    - "download the training data from the ml-artifacts bucket"
+actions: [s3:GetObject, s3:GetObjectVersion, s3:ListBucket]
+access_ceiling: List            # highest access level allowed in this entry
+params:
+  bucket:  {type: arn_component, allowlist_ref: s3-buckets}
+  prefix:  {type: path_prefix, pattern: '^[A-Za-z0-9_/.=-]{1,512}$', allow_trailing_wildcard: true}
+resources:
+  - {template: 'arn:aws:s3:::{bucket}',          for_actions: [s3:ListBucket]}
+  - {template: 'arn:aws:s3:::{bucket}/{prefix}*', for_actions: [s3:GetObject, s3:GetObjectVersion]}
+conditions:
+  - {for_actions: [s3:ListBucket], key: s3:prefix, op: StringLike, value: '{prefix}*'}
+max_duration_seconds: 900
+requires_approval: false
+managed_policy: false           # eligible for PolicyArns offload (7.3)

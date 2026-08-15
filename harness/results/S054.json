@@ -1,0 +1,15 @@
+{
+  "scenario": "S054",
+  "verdict": "pass",
+  "invariant": "I2",
+  "expected": "A maximum-length valid prefix (512 chars) on s3.read-prefix compiles into a policy with the full prefix rendered into the ARN and s3:prefix condition, no truncation, no wildcard action, and the mint succeeds within the 2048-char size budget.",
+  "observed": "request_grant returned status active (grant 01M01K4CJQ3HYB2X59FS19XRG8). explain_grant policy_json (1548 chars) rendered the full 512-char prefix untruncated into both the GetObject Resource ARN (arn:aws:s3:::acme-invoices-prod/<512 chars>*) and the ListBucket s3:prefix StringLike condition; verified full_prefix_in_policy=True. Actions are the enumerated s3:GetObject/GetObjectVersion/ListBucket, no wildcard action; aws:RequestedRegion and aws:ResourceAccount conditions present. audit show logged body.policy_chars=1548, body.max_policy_chars=1748, sts.packed_policy_size_percent=6, minted_at present; secret_access_key and session_token absent from the audit record.",
+  "evidence": "REQUEST: mcp-call request_grant s3.read-prefix bucket=acme-invoices-prod prefix=(512-char '2026invoices/'x39 + 'aaaa/') -> status active, grant_id 01M01K4CJQ3HYB2X59FS19XRG8, scope_summary 's3.read-prefix v3; 3 actions'. EXPLAIN: explain_grant policy_json len 1548; Statement[0] Action ['s3:GetObject','s3:GetObjectVersion'] Resource 'arn:aws:s3:::acme-invoices-prod/2026invoices/...aaaa/*' (full 512-char prefix, no truncation); Statement[1] Action s3:ListBucket Resource 'arn:aws:s3:::acme-invoices-prod' with StringLike s3:prefix = full 512-char prefix + '*'; has_wildcard_action=False; full_prefix_in_policy=True. AUDIT: taskgrant audit show --json -> body.policy_chars=1548, body.max_policy_chars=1748, body.minted_at=2026-08-15T02:13:36Z, sts.packed_policy_size_percent=6; secret_present=False token_present=False. RELEASE: release_grant outcome succeeded -> status released.",
+  "commands": [
+    "python3 gen 512-char prefix ('2026invoices/'x39 + 'aaaa/'), len=512",
+    "mcp-call --tool request_grant --args-file s054_args.json --raw  -> status active, grant 01M01K4CJQ3HYB2X59FS19XRG8",
+    "mcp-call --tool explain_grant --args '{\"grant_id\":\"01M01K4CJQ3HYB2X59FS19XRG8\"}' --raw  -> policy_json 1548 chars, full prefix in ARN, no wildcard action",
+    "taskgrant audit show --config config.yaml --json 01M01K4CJQ3HYB2X59FS19XRG8  -> policy_chars 1548, max_policy_chars 1748, packed_policy_size_percent 6, secrets absent",
+    "mcp-call --tool release_grant ... outcome succeeded  -> status released"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "scenario": "S097",
+  "verdict": "pass",
+  "invariant": "none",
+  "expected": "A request carrying the pre-expired bearer token (tokens/agent-expired.token) is rejected at the transport with 401 before any tool executes, the error mentions expiry at most generically and leaks no agent enumeration, and nothing is written to the decision log.",
+  "observed": "curl POST /mcp with the expired bearer returned HTTP/1.1 401 Unauthorized, body 'invalid token' (Content-Length 14), for both tools/list and initialize. The message is fully generic (does not even name expiry). A random 64-hex bearer produced a byte-identical 401 'invalid token' body with comparable sub-millisecond timing (0.0003s vs 0.0008s), so there is no oracle distinguishing expired from invalid. audit list --agent agent-expired returned null (no decision-log record, no tool executed). Broker stayed healthy: a valid mcp-call --list-tools as agent-097 returned the tool set.",
+  "evidence": "curl -s -i -X POST http://127.0.0.1:8770/mcp -H 'Accept: application/json, text/event-stream' -H \"Authorization: Bearer $(cat tokens/agent-expired.token)\" -d '{...tools/list...}' => 'HTTP/1.1 401 Unauthorized' / Content-Length: 14 / body 'invalid token'. initialize with same token => http_code=401 time=0.000286. Random bearer => http_code=401 time=0.000839, body 'invalid token' (identical shape). './bin/taskgrant audit list --config ./config.yaml --json --agent agent-expired --limit 5' => null. './bin/mcp-call --token-file tokens/agent-097.token --list-tools' => healthy tool list returned.",
+  "commands": [
+    "curl -s -i -X POST http://127.0.0.1:8770/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -H \"Authorization: Bearer $(cat tokens/agent-expired.token)\" -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}'",
+    "curl -s -o /dev/null -w 'http_code=%{http_code} time=%{time_total}\\n' -X POST http://127.0.0.1:8770/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -H \"Authorization: Bearer $(cat tokens/agent-expired.token)\" -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-06-18\",\"capabilities\":{},\"clientInfo\":{\"name\":\"curl\",\"version\":\"1\"}}}'",
+    "curl -s -o /dev/null -w 'random http_code=%{http_code} time=%{time_total}\\n' -X POST http://127.0.0.1:8770/mcp -H 'Authorization: Bearer $(openssl rand -hex 32)' -d '{...tools/list...}'",
+    "/Users/hardik/Development/taskgrant/harness/bin/taskgrant audit list --config /Users/hardik/Development/taskgrant/harness/config.yaml --json --agent agent-expired --limit 5",
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-097.token --list-tools"
+  ]
+}

@@ -1,0 +1,17 @@
+id: sqs.consume
+version: 1
+summary: Receive and delete messages from an allowlisted SQS queue
+match:
+  keywords: [consume, receive, poll, dequeue, process]
+  service_prefixes: [sqs]
+  examples:
+    - "process messages from the invoice-events queue"
+actions: [sqs:ReceiveMessage, sqs:DeleteMessage, sqs:GetQueueAttributes]
+access_ceiling: Write
+params:
+  queue: {type: identifier, allowlist_ref: sqs-queues}
+resources:
+  - {template: 'arn:aws:sqs:*:*:{queue}', for_actions: [sqs:ReceiveMessage, sqs:DeleteMessage, sqs:GetQueueAttributes]}
+max_duration_seconds: 900
+requires_approval: false
+managed_policy: false

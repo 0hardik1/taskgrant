@@ -1,0 +1,32 @@
+# Named allowlist sets referenced by capability params
+# (allowlist_ref), plus the admin resource ARN patterns every
+# worst-case template render must match (section 5.2). Entries may
+# carry '*' globs; a value that matches only through a glob entry gets
+# aws:ResourceAccount injected at compile time (G5).
+allowlists:
+  s3-buckets:
+    - acme-invoices-prod
+    - acme-ml-artifacts
+    - acme-ml-*
+  dynamodb-tables:
+    - invoices
+    - invoice-audit
+  sqs-queues:
+    - invoice-events
+    - invoice-events-dlq
+  log-groups:
+    - /aws/lambda/invoice-processor
+    - /ecs/invoice-api
+  lambda-functions:
+    - invoice-processor
+
+resource_patterns:
+  - arn:aws:s3:::acme-invoices-prod
+  - arn:aws:s3:::acme-invoices-prod/*
+  - arn:aws:s3:::acme-ml-*
+  - arn:aws:dynamodb:*:*:table/invoices*
+  - arn:aws:dynamodb:*:*:table/invoice-audit*
+  - arn:aws:sqs:*:*:invoice-events*
+  - arn:aws:logs:*:*:log-group:/aws/lambda/invoice-processor*
+  - arn:aws:logs:*:*:log-group:/ecs/invoice-api*
+  - arn:aws:lambda:*:*:function:invoice-processor

@@ -1,0 +1,21 @@
+# LocalStack backing for the taskgrant test harness.
+# STS AssumeRole and IAM CRUD work in the community image; policy semantics
+# are not enforced, so scenarios assert broker behavior, not AWS enforcement.
+services:
+  localstack:
+    image: localstack/localstack:3.8.1
+    container_name: taskgrant-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      # ACTIVATE_PRO=0 forces the free community edition (no license token).
+      # Every service the harness uses is a community service.
+      - ACTIVATE_PRO=0
+      - SERVICES=sts,iam,s3,sqs,dynamodb,logs,lambda,cloudwatch
+      - PERSISTENCE=0
+      - EAGER_SERVICE_LOADING=1
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 30

@@ -1,0 +1,15 @@
+{
+  "scenario": "S088",
+  "verdict": "pass",
+  "invariant": "G7",
+  "expected": "duration_seconds values 899, 0, and -5 must each floor to the 900s minimum (never granted below 900) or be rejected with a clean validation error; audit shows requested vs granted.",
+  "observed": "request 899 -> status active, granted_duration_seconds 900 (requested_duration_seconds 899), G7.duration-clamp detail 'effective 900s = min(request 900s, capability cap 900s, profile cap 1800s, global cap 3600s), floor 900s'; request 0 -> status active, granted_duration_seconds 900, same G7 clamp; request -5 -> clean tool result status error, error_code INVALID_ARGUMENT, detail 'duration_seconds: must not be negative', no mint. Nothing granted below 900 and no crash.",
+  "evidence": "mcp-call request_grant s3.read-prefix as agent-088 profile default. duration_seconds:899 => grant_id 01M01KBKG5G1PWJSV430FB76CS status active. duration_seconds:0 => grant_id 01M01KBWNAHXSZMXX37CVXNXGH status active. duration_seconds:-5 => {\"detail\":\"duration_seconds: must not be negative\",\"error_code\":\"INVALID_ARGUMENT\",\"status\":\"error\"} (mcp-call exit 0, a normal tool result). audit show --json 01M01KBKG5G1PWJSV430FB76CS: requested_duration_seconds 899, granted_duration_seconds 900, verdict G7.duration-clamp floor 900s. audit show --json 01M01KBWNAHXSZMXX37CVXNXGH: granted_duration_seconds 900, same G7 clamp.",
+  "commands": [
+    "mcp-call --tool request_grant s3.read-prefix bucket=acme-invoices-prod prefix=2026/ duration_seconds=899 -> active, grant 01M01KBKG5G1PWJSV430FB76CS",
+    "mcp-call --tool request_grant s3.read-prefix bucket=acme-invoices-prod prefix=reports/q3/ duration_seconds=0 -> active, grant 01M01KBWNAHXSZMXX37CVXNXGH",
+    "mcp-call --tool request_grant s3.read-prefix duration_seconds=-5 -> status error INVALID_ARGUMENT 'must not be negative'",
+    "taskgrant audit show --config config.yaml --json 01M01KBKG5G1PWJSV430FB76CS -> requested 899 granted 900 G7 floor",
+    "taskgrant audit show --config config.yaml --json 01M01KBWNAHXSZMXX37CVXNXGH -> granted 900 G7 floor"
+  ]
+}

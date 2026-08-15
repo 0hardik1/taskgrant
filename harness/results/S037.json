@@ -1,0 +1,13 @@
+{
+  "scenario": "S037",
+  "verdict": "pass",
+  "invariant": "I1",
+  "expected": "request_grant with bucket = allowlisted name 'acme-invoices-prod' but with a Cyrillic homoglyph 'o' (U+043E) in place of the Latin 'o' must be rejected with INVALID_PARAM (not silently resolved to the allowlisted bucket), naming the exact param and expected shape, the audit log records the attempt, and no STS mint occurs (no minted_at, no access_key_id).",
+  "observed": "Broker returned status needs_clarification with clarification.code INVALID_PARAM. It named the exact param (s3.read-prefix.bucket), the expected shape said the value 'contains a character outside the arn_component charset; expected value from the s3-buckets allowlist', and gave allowlist examples [acme-invoices-prod, acme-ml-artifacts]. The Cyrillic homoglyph was NOT normalized to the allowlisted name. mcp-call exited 0 (a normal tool result). Audit show for grant 01M01K2091M0V21GWSZDBE76YW has exactly one record, kind=clarification, outcome=needs_clarification, with no minted_at and no access_key_id populated; no ASIA/AKIA credential material present. No STS call happened.",
+  "evidence": "bucket bytes: a c m e - i n v o i c e s - p r <0x43e Cyrillic о> d (18 chars, the 'o' in 'prod' is U+043E). request_grant (agent-037, profile default, s3.read-prefix bucket=homoglyph prefix=2026/) -> {\"status\":\"needs_clarification\",\"grant_id\":\"01M01K2091M0V21GWSZDBE76YW\",\"clarification\":{\"code\":\"INVALID_PARAM\",\"missing_params\":[{\"capability\":\"s3.read-prefix\",\"name\":\"bucket\",\"expected_shape\":\"contains a character outside the arn_component charset; expected value from the s3-buckets allowlist\",\"examples\":[\"acme-invoices-prod\",\"acme-ml-artifacts\"]}]}} ; mcp-call EXIT=0. taskgrant audit show --json 01M01K2091M0V21GWSZDBE76YW -> one record: kind=clarification, outcome=needs_clarification, agent_id=agent-037; has minted_at populated: False; has access_key_id populated: False; has ASIA/AKIA token: False.",
+  "commands": [
+    "python3 build homoglyph args (bucket 'acme-invoices-prod' with U+043E Cyrillic о in 'prod')",
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-037.token --tool request_grant --args-file s037-args.json",
+    "/Users/hardik/Development/taskgrant/harness/bin/taskgrant audit show --config /Users/hardik/Development/taskgrant/harness/config.yaml --json 01M01K2091M0V21GWSZDBE76YW"
+  ]
+}

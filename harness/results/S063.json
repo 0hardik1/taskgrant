@@ -1,0 +1,16 @@
+{
+  "scenario": "S063",
+  "verdict": "pass",
+  "invariant": "I5",
+  "expected": "Exhaust the per-(agent,capability) rate bucket (30/h): after 30 grants, the next request is a clean RATE_LIMITED denial with a machine-readable code and no credentials, recorded durably in the decision log; the restart-then-request sub-check that proves the ledger survives a broker restart (I5) is skipped by design because no restart helper exists and the fleet shares one broker.",
+  "observed": "As agent-063 (no prior audit history), requests 1-30 of s3.read-prefix on acme-invoices-prod prefix 2026/ all returned status active (exit 0). Request 31 returned status denied, denial_code RATE_LIMITED, detail 'G8.rate-limit: rate limit exhausted (30/h per agent and capability): s3.read-prefix', with no secret_access_key/session_token/access_key_id fields. The audit record (seq 213, grant 01M01K63ZBNFEZ0S0P0P2ZNB9V) shows outcome denied, denial_code RATE_LIMITED, denied_by guardrail:G8.rate-limit, and carries no minted_at and no access_key_id. The restart-and-retry sub-check was SKIPPED by design (env.json notes: no restart helper, broker must not be restarted).",
+  "evidence": "Broker up: lsof -nP -iTCP:8770 -sTCP:LISTEN -> taskgrant PID 80039 LISTEN. audit list --agent agent-063 before run -> null (fresh). Loop of 31 request_grant calls with capability s3.read-prefix {bucket: acme-invoices-prod, prefix: 2026/}: req 1..30 -> 'active <grant_id>'; req 31 -> 'denied RATE_LIMITED 01M01K63ZBNFEZ0S0P0P2ZNB9V'. Full 32nd probe result: {\"denial_code\":\"RATE_LIMITED\",\"detail\":\"G8.rate-limit: rate limit exhausted (30/h per agent and capability): s3.read-prefix\",\"grant_id\":\"01M01K6FDJDNMMTZN93XHW6CV4\",\"status\":\"denied\"}. grep of denial response for secret_access_key|session_token -> no secret/token fields present. taskgrant audit show --json 01M01K63ZBNFEZ0S0P0P2ZNB9V -> body.denial_code=RATE_LIMITED, body.denied_by=guardrail:G8.rate-limit, minted_at present: False, access_key_id present: False, any secret/token strings: False.",
+  "commands": [
+    "lsof -nP -iTCP:8770 -sTCP:LISTEN",
+    "taskgrant audit list --config config.yaml --json --agent agent-063 --limit 50   # -> null",
+    "for i in 1..31: mcp-call --token-file tokens/agent-063.token --tool request_grant --args '{...capabilities:[{id:s3.read-prefix,params:{bucket:acme-invoices-prod,prefix:2026/}}]...}'",
+    "mcp-call ... request_grant (32nd probe) --raw   # -> denied RATE_LIMITED, no creds",
+    "taskgrant audit show --config config.yaml --json 01M01K63ZBNFEZ0S0P0P2ZNB9V"
+  ],
+  "skipped_subcheck": "Broker restart between exhaustion and retry (durable ledger across restart, I5): skipped by design per env.json notes and run-scenario.md section 6; no restart helper and the broker is shared by the fleet."
+}
