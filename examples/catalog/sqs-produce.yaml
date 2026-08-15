@@ -1,0 +1,17 @@
+id: sqs.produce
+version: 1
+summary: Send messages to an allowlisted SQS queue
+match:
+  keywords: [send, produce, publish, enqueue, emit]
+  service_prefixes: [sqs]
+  examples:
+    - "send a completion event to the invoice-events queue"
+actions: [sqs:SendMessage, sqs:GetQueueAttributes]
+access_ceiling: Write
+params:
+  queue: {type: identifier, allowlist_ref: sqs-queues}
+resources:
+  - {template: 'arn:aws:sqs:*:*:{queue}', for_actions: [sqs:SendMessage, sqs:GetQueueAttributes]}
+max_duration_seconds: 900
+requires_approval: false
+managed_policy: false

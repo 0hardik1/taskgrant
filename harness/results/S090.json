@@ -1,0 +1,15 @@
+{
+  "scenario": "S090",
+  "verdict": "pass",
+  "invariant": "none",
+  "expected": "release_grant with outcome=succeeded and a note containing ANSI/control-byte escapes appends a release record, and the CLI renders the note as escaped/stripped (sanitized) text, never emitting raw control bytes.",
+  "observed": "Grant 01M01KBKVERCRE1KY8PWH22JKA minted active, then released with outcome=succeeded returning status=released. The release record is stored in the decision log (body/release/outcome=succeeded, body/release/note present, released_at set). Human CLI `audit show` renders the note with all control bytes STRIPPED ('done RED-INJECT bell  clearscreen S090 del') and no raw 0x1b/0x07/0x08 bytes; `audit show --json` encodes the note verbatim but SAFELY as \\u001b/\\b JSON escapes with no raw control bytes. No terminal-injection escape sequence reaches stdout in either mode.",
+  "evidence": "1) request_grant (agent-090, s3.read-prefix bucket=acme-invoices-prod prefix=2026/) -> status active, grant_id 01M01KBKVERCRE1KY8PWH22JKA.\n2) release_grant via --args-file (note = 'done \\u001b[31mRED-INJECT\\u001b[0m bell\\u0007 \\u001b[2J\\u001b[H clearscreen S090 \\b\\bdel', real ESC/BEL/BS bytes) -> structured_content {outcome:succeeded, released_at:2026-08-15T02:18:10Z, status:released}.\n3) taskgrant audit show --config config.yaml --json <id>: record[1] body/release/note stored, body/release/outcome=succeeded, body/release/released_at=2026-08-15T02:18:10.051288Z; JSON bytes contain NO raw ESC/BEL/BS, note carried as \\u001b/\\b escapes (well-formed JSON).\n4) taskgrant audit show --config config.yaml <id> (human render): note line = '\"note\": \"done RED-INJECT bell  clearscreen S090 del\"'; grep of raw bytes: has_raw_ESC(0x1b)=False, has_raw_BEL(0x07)=False, has_raw_BS(0x08)=False.",
+  "commands": [
+    "./bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file ./tokens/agent-090.token --tool request_grant --args '{...s3.read-prefix acme-invoices-prod 2026/...}'  => status active, grant 01M01KBKVERCRE1KY8PWH22JKA",
+    "python3 -c \"...json.dumps note with \\x1b[31m...\\x07 \\x1b[2J \\x08\\x08...\" > s090-release.json  (JSON \\u001b/\\b escapes on disk)",
+    "./bin/mcp-call ... --tool release_grant --args-file s090-release.json  => {outcome:succeeded, status:released, released_at:2026-08-15T02:18:10Z}",
+    "./bin/taskgrant audit show --config ./config.yaml --json 01M01KBKVERCRE1KY8PWH22JKA  => body/release/note stored, no raw control bytes, note as \\u001b escapes",
+    "./bin/taskgrant audit show --config ./config.yaml 01M01KBKVERCRE1KY8PWH22JKA  => note rendered stripped: 'done RED-INJECT bell  clearscreen S090 del'; raw ESC/BEL/BS = False"
+  ]
+}

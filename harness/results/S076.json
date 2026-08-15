@@ -1,0 +1,12 @@
+{
+  "scenario": "S076",
+  "verdict": "pass",
+  "invariant": "I3",
+  "expected": "get_grant on a syntactically valid but never-issued ULID returns NOT_FOUND (never FORBIDDEN), with a response shape identical to any other nonexistent/cross-agent grant so existence is never confirmed.",
+  "observed": "get_grant as agent-076 on never-issued ULID 01JQZZZZZZZZZZZZZZZZZZZZZZ returned exit 0 with structured_content {detail:'no such grant', error_code:'NOT_FOUND', status:'error'}. A second distinct never-issued ULID (01HXXXXXXXXXXXXXXXXXXXXXXX) returned a byte-identical body, confirming a constant NOT_FOUND shape that does not leak existence and matches the S073 cross-agent response shape.",
+  "evidence": "mcp-call get_grant {grant_id:01JQZZZZZZZZZZZZZZZZZZZZZZ} -> is_error:false, structured_content={detail:'no such grant',error_code:'NOT_FOUND',status:'error'}, EXIT=0. mcp-call get_grant --raw {grant_id:01HXXXXXXXXXXXXXXXXXXXXXXX} -> {detail:'no such grant',error_code:'NOT_FOUND',status:'error'} (byte-identical to first). No FORBIDDEN, no grant data leaked, transport healthy (exit 0).",
+  "commands": [
+    "mcp-call --tool get_grant --args {\"grant_id\":\"01JQZZZZZZZZZZZZZZZZZZZZZZ\"}",
+    "mcp-call --tool get_grant --raw --args {\"grant_id\":\"01HXXXXXXXXXXXXXXXXXXXXXXX\"}"
+  ]
+}

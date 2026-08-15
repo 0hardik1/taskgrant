@@ -1,0 +1,14 @@
+{
+  "scenario": "S044",
+  "verdict": "pass",
+  "invariant": "none",
+  "expected": "Two request_grant calls with different idempotency_keys but an identical request must mint two distinct grants, because idempotency keys scope dedupe (family idempotency, section 4.2).",
+  "observed": "Key 's044-key-alpha' minted grant 01M01K26WH6B4GZQB5CPRT0GQ3 (access_key_id LSIAQAAAAAAACA5CZT42), key 's044-key-bravo' minted grant 01M01K26X3TGSQ9R2KR6KZ6ES8 (access_key_id LSIAQAAAAAAAGZBYY7X4). Both status active, both attributed to agent-044, distinct grant ids and distinct minted STS credentials. No dedupe occurred across differing keys.",
+  "evidence": "mcp-call request_grant (agent-044, profile default, s3.read-prefix bucket=acme-invoices-prod prefix=2026/, duration 900) run twice with distinct idempotency_key values. KEY A -> grant_id 01M01K26WH6B4GZQB5CPRT0GQ3, status active, akid LSIAQAAAAAAACA5CZT42. KEY B -> grant_id 01M01K26X3TGSQ9R2KR6KZ6ES8, status active, akid LSIAQAAAAAAAGZBYY7X4. taskgrant audit show --json for each: A -> {grant_id 01M01K26WH6B4GZQB5CPRT0GQ3, agent_id agent-044, access_key_id LSIAQAAAAAAACA5CZT42}; B -> {grant_id 01M01K26X3TGSQ9R2KR6KZ6ES8, agent_id agent-044, access_key_id LSIAQAAAAAAAGZBYY7X4}. Two distinct grant ids and two distinct access key ids confirm two separate mints. Secret and session token values redacted.",
+  "commands": [
+    "./bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file ./tokens/agent-044.token --tool request_grant --args '{... idempotency_key: s044-key-alpha, s3.read-prefix acme-invoices-prod 2026/ ...}' --raw  => grant_id 01M01K26WH6B4GZQB5CPRT0GQ3, status active",
+    "./bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file ./tokens/agent-044.token --tool request_grant --args '{... idempotency_key: s044-key-bravo, identical request ...}' --raw  => grant_id 01M01K26X3TGSQ9R2KR6KZ6ES8, status active",
+    "./bin/taskgrant audit show --config ./config.yaml --json 01M01K26WH6B4GZQB5CPRT0GQ3  => agent-044, akid LSIAQAAAAAAACA5CZT42",
+    "./bin/taskgrant audit show --config ./config.yaml --json 01M01K26X3TGSQ9R2KR6KZ6ES8  => agent-044, akid LSIAQAAAAAAAGZBYY7X4"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "scenario": "S093",
+  "verdict": "pass",
+  "invariant": "I3",
+  "expected": "taskgrant revoke --grant <id> on a revocation-enabled profile writes an inline role deny keyed ONLY on aws:PrincipalTag/taskgrant:grant equal to the grant ULID, with the caller_ref appearing nowhere in the deny document.",
+  "observed": "Revoke applied a Deny statement (Sid tgG01M01KBVPPNK1S971NWF5F3NNXE1786761191) to inline policy taskgrant-revocations on role taskgrant-default. Its Condition is StringEquals aws:PrincipalTag/taskgrant:grant = 01M01KBVPPNK1S971NWF5F3NNX plus DateLessThan aws:TokenIssueTime. The statement is keyed on the grant ULID only; no caller_ref value or field appears anywhere in the policy document.",
+  "evidence": "request_grant (agent-093, profile default, s3.read-prefix acme-invoices-prod 2026/) -> status active, grant_id 01M01KBVPPNK1S971NWF5F3NNX (secret/session token present, redacted). `taskgrant revoke --grant 01M01KBVPPNK1S971NWF5F3NNX` -> exit 0: 'revocation applied: mechanism=grant profile=default grant=01M01KBVPPNK1S971NWF5F3NNX; deny attached as sid tgG01M01KBVPPNK1S971NWF5F3NNXE1786761191'. `awslocal iam get-role-policy --role-name taskgrant-default --policy-name taskgrant-revocations` -> Effect Deny, Action *, Resource *, Condition{ DateLessThan aws:TokenIssueTime 2026-08-15T02:18:15Z; StringEquals aws:PrincipalTag/taskgrant:grant 01M01KBVPPNK1S971NWF5F3NNX }. caller_ref present nowhere in the document.",
+  "commands": [
+    "lsof -nP -iTCP:8770 -sTCP:LISTEN  (broker listening, admin.sock present)",
+    "mcp-call --tool request_grant (agent-093) -> status active, grant 01M01KBVPPNK1S971NWF5F3NNX",
+    "taskgrant revoke --config config.yaml --grant 01M01KBVPPNK1S971NWF5F3NNX -> deny sid tgG01M01KBVPPNK1S971NWF5F3NNXE1786761191",
+    "awslocal iam list-role-policies --role-name taskgrant-default -> [taskgrant-revocations]",
+    "awslocal iam get-role-policy --role-name taskgrant-default --policy-name taskgrant-revocations -> Deny keyed on aws:PrincipalTag/taskgrant:grant, no caller_ref"
+  ]
+}

@@ -1,0 +1,17 @@
+id: lambda.invoke
+version: 1
+summary: Invoke one allowlisted Lambda function
+match:
+  keywords: [invoke, run, call, execute, trigger]
+  service_prefixes: [lambda]
+  examples:
+    - "run the invoice-processor function on the new batch"
+actions: [lambda:InvokeFunction]
+access_ceiling: Write
+params:
+  function: {type: identifier, allowlist_ref: lambda-functions}
+resources:
+  - {template: 'arn:aws:lambda:*:*:function:{function}', for_actions: [lambda:InvokeFunction]}
+max_duration_seconds: 900
+requires_approval: true
+managed_policy: false

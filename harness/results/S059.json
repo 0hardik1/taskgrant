@@ -1,0 +1,14 @@
+{
+  "scenario": "S059",
+  "verdict": "pass",
+  "invariant": "G8",
+  "expected": "Firing 31 rapid identical request_grant calls as one agent-capability pair: the first 30 are honored and number 31 is a clean RATE_LIMITED denial (token bucket 30/h per agent+capability, G8), with the denial recorded in the audit log and no credentials leaked.",
+  "observed": "agent-059 was fresh (audit list null). Requests 1-30 all returned status=active with distinct grant_ids; request 31 returned status=denied with denial_code=RATE_LIMITED (detail 'G8.rate-limit: rate limit exhausted (30/h per agent and capability): s3.read-prefix'). The denial payload carried no secret/session_token/access_key fields. audit show on the 31st grant_id records kind=grant_decision, denial_code=RATE_LIMITED, denied_by=guardrail:G8.rate-limit, with no minted_at/access_key_id. The durable-restart sub-check (I5) is not part of S059 and no restart helper exists, so it was not exercised.",
+  "evidence": "Loop of 31 request_grant calls (agent-059, s3.read-prefix bucket=acme-invoices-prod prefix=2026/): req 1..30 -> exit=0 active <ulid>; req 31 -> exit=0 denied RATE_LIMITED 01M01K5PRVDY5AQ891T1XSW2KB. Full 31st response: {\"denial_code\":\"RATE_LIMITED\",\"detail\":\"G8.rate-limit: rate limit exhausted (30/h per agent and capability): s3.read-prefix\",\"grant_id\":\"01M01K5ZKQV7SQMSEDAYYYFS8Q\",\"status\":\"denied\"}. grep for secret|session_token|access_key|ASIA on a denial -> NO credential fields present. audit show --json 01M01K5PRVDY5AQ891T1XSW2KB shows denial_code RATE_LIMITED, denied_by guardrail:G8.rate-limit, no access_key_id.",
+  "commands": [
+    "./bin/taskgrant audit list --config ./config.yaml --json --agent agent-059 --limit 40   (before run: null, fresh budget)",
+    "for i in $(seq 1 31); do ./bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file ./tokens/agent-059.token --tool request_grant --args '{\"task\":\"S059 rate-limit probe: read invoice objects\",\"reason\":\"scenario S059 rate creep\",\"profile\":\"default\",\"capabilities\":[{\"id\":\"s3.read-prefix\",\"params\":{\"bucket\":\"acme-invoices-prod\",\"prefix\":\"2026/\"}}]}' --raw; done  -> req1-30 active, req31 denied RATE_LIMITED",
+    "./bin/mcp-call ... --tool request_grant ... --raw | grep -iE 'secret|session_token|access_key|ASIA'  -> NO credential fields present",
+    "./bin/taskgrant audit show --config ./config.yaml --json 01M01K5PRVDY5AQ891T1XSW2KB  -> denial_code RATE_LIMITED, denied_by guardrail:G8.rate-limit"
+  ]
+}

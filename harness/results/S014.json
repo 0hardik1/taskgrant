@@ -1,0 +1,12 @@
+{
+  "scenario": "S014",
+  "verdict": "pass",
+  "invariant": "none",
+  "expected": "Free text 'send a message to the ingest queue' with no capability hints must never silently mint; the broker must return either needs_clarification with candidate capability ids (score in [0.50,0.80)) or a NEEDS_STRUCTURED_HINTS/NO_MATCH denial pointing at list_capabilities (score below 0.50), and mint nothing.",
+  "observed": "request_grant returned status=denied, denial_code=NEEDS_STRUCTURED_HINTS, detail 'no structured hints and no keyword match; call list_capabilities and retry with a capabilities hint', grant_id 01M0176ZVVFCD20AARKZWM4PCY, mcp-call exit 0. This is spec-compliant path (b): the rules matcher scored the only candidate sqs.produce at confidence 0.308 (below the 0.50 no-match floor), so no candidates were surfaced and nothing was minted. Audit show confirms outcome=denied, denied_by=synthesizer, no minted_at and no access_key_id; task stored verbatim. Since a denial (not a clarification) was returned, no confirm-by-id round applies.",
+  "evidence": "REQUEST: mcp-call --tool request_grant --args '{\"task\":\"send a message to the ingest queue\",\"reason\":\"scenario S014, keyword-match family\",\"profile\":\"default\"}' (no capabilities hint) -> exit 0, structured_content {\"denial_code\":\"NEEDS_STRUCTURED_HINTS\",\"detail\":\"no structured hints and no keyword match; call list_capabilities and retry with a capabilities hint\",\"grant_id\":\"01M0176ZVVFCD20AARKZWM4PCY\",\"status\":\"denied\"}. AUDIT: taskgrant audit show --json 01M0176ZVVFCD20AARKZWM4PCY -> outcome=denied, denied_by=synthesizer, denial_code=NEEDS_STRUCTURED_HINTS, matcher.candidates=[{capability_id:sqs.produce, confidence:0.308, rationale:'keyword match: send'}], no minted_at field, no access_key_id field, task stored verbatim 'send a message to the ingest queue', token_fingerprint 30278cef, transport http. No STS block present -> nothing minted.",
+  "commands": [
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-014.token --tool request_grant --args '{\"task\":\"send a message to the ingest queue\",\"reason\":\"scenario S014, keyword-match family\",\"profile\":\"default\"}'",
+    "/Users/hardik/Development/taskgrant/harness/bin/taskgrant audit show --config /Users/hardik/Development/taskgrant/harness/config.yaml --json 01M0176ZVVFCD20AARKZWM4PCY"
+  ]
+}

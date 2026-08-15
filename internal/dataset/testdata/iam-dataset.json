@@ -1,0 +1,304 @@
+{
+  "schema_version": 1,
+  "source_commit": "4c1f9a4be9f2d0c8a7e6512309dfb8a1c5e3d7f2",
+  "actions": {
+    "s3:GetObject": {
+      "access_level": "Read",
+      "resource_types": ["object"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "s3:ExistingObjectTag/<key>",
+        "s3:AccessPointNetworkOrigin",
+        "s3:TlsVersion"
+      ]
+    },
+    "s3:GetObjectVersion": {
+      "access_level": "Read",
+      "resource_types": ["object"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "s3:ExistingObjectTag/<key>",
+        "s3:versionid"
+      ]
+    },
+    "s3:PutObject": {
+      "access_level": "Write",
+      "resource_types": ["object"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "s3:RequestObjectTag/<key>",
+        "s3:x-amz-acl",
+        "s3:x-amz-server-side-encryption",
+        "s3:x-amz-storage-class"
+      ]
+    },
+    "s3:DeleteObject": {
+      "access_level": "Write",
+      "resource_types": ["object"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "s3:ExistingObjectTag/<key>"
+      ]
+    },
+    "s3:DeleteObjectVersion": {
+      "access_level": "Write",
+      "resource_types": ["object"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "s3:versionid"
+      ]
+    },
+    "s3:ListBucket": {
+      "access_level": "List",
+      "resource_types": ["bucket"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "s3:prefix",
+        "s3:delimiter",
+        "s3:max-keys"
+      ]
+    },
+    "s3:ListBucketVersions": {
+      "access_level": "List",
+      "resource_types": ["bucket"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "s3:prefix",
+        "s3:delimiter",
+        "s3:max-keys"
+      ]
+    },
+    "s3:PutBucketPolicy": {
+      "access_level": "Permissions management",
+      "resource_types": ["bucket"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "s3:TlsVersion"
+      ]
+    },
+    "dynamodb:Query": {
+      "access_level": "Read",
+      "resource_types": ["table", "index"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "aws:ResourceTag/${TagKey}",
+        "dynamodb:Attributes",
+        "dynamodb:LeadingKeys",
+        "dynamodb:ReturnConsumedCapacity",
+        "dynamodb:ReturnValues",
+        "dynamodb:Select"
+      ]
+    },
+    "dynamodb:GetItem": {
+      "access_level": "Read",
+      "resource_types": ["table"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "aws:ResourceTag/${TagKey}",
+        "dynamodb:Attributes",
+        "dynamodb:LeadingKeys",
+        "dynamodb:ReturnConsumedCapacity",
+        "dynamodb:Select"
+      ]
+    },
+    "dynamodb:BatchGetItem": {
+      "access_level": "Read",
+      "resource_types": ["table"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "aws:ResourceTag/${TagKey}",
+        "dynamodb:Attributes",
+        "dynamodb:LeadingKeys",
+        "dynamodb:ReturnConsumedCapacity",
+        "dynamodb:Select"
+      ]
+    },
+    "sqs:ReceiveMessage": {
+      "access_level": "Read",
+      "resource_types": ["queue"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "aws:ResourceTag/${TagKey}"
+      ]
+    },
+    "sqs:DeleteMessage": {
+      "access_level": "Write",
+      "resource_types": ["queue"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "aws:ResourceTag/${TagKey}"
+      ]
+    },
+    "sqs:SendMessage": {
+      "access_level": "Write",
+      "resource_types": ["queue"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "aws:ResourceTag/${TagKey}"
+      ]
+    },
+    "sqs:GetQueueAttributes": {
+      "access_level": "Read",
+      "resource_types": ["queue"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "aws:ResourceTag/${TagKey}"
+      ]
+    },
+    "sqs:AddPermission": {
+      "access_level": "Permissions management",
+      "resource_types": ["queue"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "aws:ResourceTag/${TagKey}"
+      ]
+    },
+    "logs:GetLogEvents": {
+      "access_level": "Read",
+      "resource_types": ["log-stream"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount"
+      ]
+    },
+    "logs:FilterLogEvents": {
+      "access_level": "Read",
+      "resource_types": ["log-group"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "aws:ResourceTag/${TagKey}"
+      ]
+    },
+    "logs:DescribeLogGroups": {
+      "access_level": "List",
+      "resource_types": ["log-group"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount"
+      ]
+    },
+    "logs:DescribeLogStreams": {
+      "access_level": "List",
+      "resource_types": ["log-group"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount"
+      ]
+    },
+    "lambda:InvokeFunction": {
+      "access_level": "Write",
+      "resource_types": ["function"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "aws:ResourceTag/${TagKey}",
+        "lambda:FunctionUrlAuthType"
+      ]
+    },
+    "lambda:AddPermission": {
+      "access_level": "Permissions management",
+      "resource_types": ["function"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "aws:ResourceTag/${TagKey}",
+        "lambda:Principal",
+        "lambda:FunctionUrlAuthType"
+      ]
+    },
+    "kms:PutKeyPolicy": {
+      "access_level": "Permissions management",
+      "resource_types": ["key"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "aws:ResourceTag/${TagKey}",
+        "kms:BypassPolicyLockoutSafetyCheck",
+        "kms:CallerAccount",
+        "kms:ViaService"
+      ]
+    },
+    "ec2:ModifyInstanceAttribute": {
+      "access_level": "Write",
+      "resource_types": ["instance", "volume"],
+      "condition_keys": [
+        "aws:RequestedRegion",
+        "aws:ResourceAccount",
+        "ec2:ResourceTag/${TagKey}",
+        "ec2:InstanceProfile",
+        "ec2:InstanceType"
+      ]
+    },
+    "iam:PassRole": {
+      "access_level": "Write",
+      "resource_types": ["role"],
+      "condition_keys": [
+        "iam:PassedToService",
+        "iam:AssociatedResourceArn"
+      ]
+    },
+    "iam:CreateAccessKey": {
+      "access_level": "Write",
+      "resource_types": ["user"],
+      "condition_keys": []
+    },
+    "iam:AttachRolePolicy": {
+      "access_level": "Permissions management",
+      "resource_types": ["role"],
+      "condition_keys": [
+        "iam:PolicyARN",
+        "iam:PermissionsBoundary"
+      ]
+    },
+    "iam:PutRolePolicy": {
+      "access_level": "Permissions management",
+      "resource_types": ["role"],
+      "condition_keys": [
+        "iam:PermissionsBoundary"
+      ]
+    },
+    "iam:GetRole": {
+      "access_level": "Read",
+      "resource_types": ["role"],
+      "condition_keys": []
+    },
+    "iam:ListRoles": {
+      "access_level": "List",
+      "resource_types": [],
+      "condition_keys": []
+    },
+    "sts:AssumeRole": {
+      "access_level": "Write",
+      "resource_types": ["role"],
+      "condition_keys": [
+        "sts:ExternalId",
+        "sts:RoleSessionName",
+        "sts:TransitiveTagKeys",
+        "sts:SourceIdentity",
+        "aws:PrincipalTag/${TagKey}"
+      ]
+    },
+    "sts:GetCallerIdentity": {
+      "access_level": "Read",
+      "resource_types": [],
+      "condition_keys": []
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "scenario": "S039",
+  "verdict": "pass",
+  "invariant": "I1",
+  "expected": "A request_grant carrying a valid capability id (s3.read-prefix) but an undeclared extra params key ('actions': ['iam:PassRole']) must be rejected, naming the offending param and expected shape, never compiled into a policy, and with no STS mint (no minted_at, no access_key_id).",
+  "observed": "The broker rejected the request at the MCP argument-validation boundary: is_error=true, exit 0, message names the exact JSON path (/properties/capabilities/items/properties/params/additionalProperties) and expected shape ('[iam:PassRole] has type \"array\", want \"string\"'). No grant was minted; audit list for agent-039 returned null (no decision record, hence no STS call). The injected iam:PassRole never reached the synthesizer or any policy. Deviation from the literal expect text: the attempt is not recorded in the decision log because it is caught pre-dispatch at the schema boundary (a stricter rejection than an INVALID_PARAM synth denial), not a security-relevant deviation.",
+  "evidence": "request_grant as agent-039 with capabilities=[{id:s3.read-prefix, params:{bucket:acme-invoices-prod, prefix:2026/, actions:[iam:PassRole]}}] -> {\"tool\":\"request_grant\",\"is_error\":true,\"structured_content\":null,\"content\":[{\"type\":\"text\",\"text\":\"validating \\\"arguments\\\": ... validating /properties/capabilities/items/properties/params/additionalProperties: type: [iam:PassRole] has type \\\"array\\\", want \\\"string\\\"\"}]}, exit 0. taskgrant audit list --json --agent agent-039 -> null (no record, no mint, no STS). No policy compiled; iam:PassRole absent everywhere.",
+  "commands": [
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-039.token --tool request_grant --args '{\"task\":\"scenario S039 hostile-params: read 2026 invoices\",\"reason\":\"scenario S039, hostile extra param key\",\"profile\":\"default\",\"capabilities\":[{\"id\":\"s3.read-prefix\",\"params\":{\"bucket\":\"acme-invoices-prod\",\"prefix\":\"2026/\",\"actions\":[\"iam:PassRole\"]}}],\"duration_seconds\":900}'",
+    "/Users/hardik/Development/taskgrant/harness/bin/taskgrant audit list --config /Users/hardik/Development/taskgrant/harness/config.yaml --json --agent agent-039 --limit 10"
+  ]
+}

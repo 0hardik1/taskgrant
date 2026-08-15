@@ -1,0 +1,13 @@
+{
+  "scenario": "S086",
+  "verdict": "pass",
+  "invariant": "G7",
+  "expected": "request_grant with duration_seconds 3600 on the default profile clamps to the effective min chain min(3600, capability cap 900, profile cap 1800, global 3600) = 900, granting 900 seconds with the audit record showing requested 3600 and granted 900; FAIL only if granted > 900 or an error instead of a clamp.",
+  "observed": "Grant 01M01KAZW73PGAQSSRJHZM939B minted active. Audit record shows requested_duration_seconds 3600 and granted_duration_seconds 900. Credential expiration 2026-08-15T02:32:12Z is exactly 900s after decided_at 2026-08-15T02:17:12Z. Guardrail G7.duration-clamp verdict pass with detail 'effective 900s = min(request 900s, capability cap 900s, profile cap 1800s, global cap 3600s), floor 900s'. No error; clean clamp.",
+  "evidence": "request_grant (profile default, s3.read-prefix bucket=acme-invoices-prod prefix=2026/, duration_seconds=3600) -> status active, expires_at 2026-08-15T02:32:12Z, grant_id 01M01KAZW73PGAQSSRJHZM939B. taskgrant audit show --json 01M01KAZW73PGAQSSRJHZM939B -> requested_duration_seconds: 3600, granted_duration_seconds: 900, expiration 2026-08-15T02:32:12.841Z, decided_at 2026-08-15T02:17:12.840079Z (delta = 900s), guardrail G7.duration-clamp: {verdict: pass, detail: 'effective 900s = min(request 900s, capability cap 900s, profile cap 1800s, global cap 3600s), floor 900s'}. release_grant -> status released.",
+  "commands": [
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-086.token --tool request_grant --args '{\"task\":\"Read the 2026 invoice objects in acme-invoices-prod for scenario S086 duration clamp test\",\"reason\":\"scenario S086, duration clamp verification\",\"profile\":\"default\",\"capabilities\":[{\"id\":\"s3.read-prefix\",\"params\":{\"bucket\":\"acme-invoices-prod\",\"prefix\":\"2026/\"}}],\"duration_seconds\":3600}'",
+    "/Users/hardik/Development/taskgrant/harness/bin/taskgrant audit show --config /Users/hardik/Development/taskgrant/harness/config.yaml --json 01M01KAZW73PGAQSSRJHZM939B",
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-086.token --tool release_grant --args '{\"grant_id\":\"01M01KAZW73PGAQSSRJHZM939B\",\"outcome\":\"succeeded\",\"note\":\"S086 duration clamp verified\"}'"
+  ]
+}

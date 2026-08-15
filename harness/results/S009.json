@@ -1,0 +1,15 @@
+{
+  "scenario": "S009",
+  "verdict": "pass",
+  "invariant": "I2",
+  "expected": "request_grant with two structured capabilities (s3.read-prefix + sqs.consume) auto-approves and mints one grant with a single policy carrying both capabilities' enumerated actions, no wildcards in Action (I2), aws:RequestedRegion present (G5), SourceIdentity tg-<grant_ulid>, and the max-3 capability rule (G8) untouched.",
+  "observed": "Grant 01M0177865DM62ETAXPZW2DF8P returned status active with credentials delivered once. explain_grant shows a single policy_json with 3 statements (s3 GetObject/GetObjectVersion, s3 ListBucket with s3:prefix condition, and sqs DeleteMessage/GetQueueAttributes/ReceiveMessage), 6 expanded actions, no wildcard in any Action element, aws:RequestedRegion=us-east-1 and aws:ResourceAccount conditions on all 3 statements. G8.capability-count reports '2 capabilities of max 3'. source_identity=tg-01M0177865DM62ETAXPZW2DF8P; minted credential reports assumed-role arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-009-01M0177865DM62ETAXPZW2DF8P. Audit show holds the full record (policy_chars 798, secret/session token absent, only access_key_id stored). Released with outcome succeeded.",
+  "evidence": "request_grant (2 caps) -> status active, grant_id 01M0177865DM62ETAXPZW2DF8P, scope_summary 's3.read-prefix v3, sqs.consume v1; 6 actions'. explain_grant policy_json: single {Version 2012-10-17, Statement:[TgS3ReadPrefix0 Action s3:GetObject/s3:GetObjectVersion on acme-invoices-prod/2026/*, TgS3ReadPrefix1 Action s3:ListBucket on acme-invoices-prod with StringLike s3:prefix 2026/*, TgSqsConsume0 Action sqs:DeleteMessage/GetQueueAttributes/ReceiveMessage on arn:aws:sqs:*:*:invoice-events]}; all Action values are literal (no '*' in Action); G5 conditions present on 3/3 statements; G8.capability-count 'pass: 2 capabilities of max 3'. sts get-caller-identity -> Arn arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-009-01M0177865DM62ETAXPZW2DF8P (mint path real). audit show --json: outcome auto_approved, source_identity tg-01M0177865DM62ETAXPZW2DF8P, packed_policy_size_percent 6, secret_access_key/session_token absent from record. release_grant -> status released, outcome succeeded.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{capabilities:[s3.read-prefix{bucket:acme-invoices-prod,prefix:2026/}, sqs.consume{queue:invoice-events}], profile:default, duration_seconds:900}' -> status active, grant_id 01M0177865DM62ETAXPZW2DF8P",
+    "mcp-call --tool explain_grant --args '{grant_id:01M0177865DM62ETAXPZW2DF8P}' -> single policy_json, 3 statements, 6 actions, G8 '2 capabilities of max 3', no wildcard Action",
+    "awslocal sts get-caller-identity (minted creds) -> assumed-role/taskgrant-default/tg-agent-009-01M0177865DM62ETAXPZW2DF8P",
+    "taskgrant audit show --config config.yaml --json 01M0177865DM62ETAXPZW2DF8P -> full record, policy_chars 798, secret/session token absent",
+    "mcp-call --tool release_grant --args '{grant_id:01M0177865DM62ETAXPZW2DF8P,outcome:succeeded}' -> status released"
+  ]
+}

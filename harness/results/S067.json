@@ -1,0 +1,15 @@
+{
+  "scenario": "S067",
+  "verdict": "pass",
+  "invariant": "none",
+  "expected": "Under approval-gated profile a request parks pending_approval; after a CLI deny with a note the agent sees APPROVAL_DENIED and the audit approval record carries the note and approver identity, with no mint.",
+  "observed": "request_grant returned status=pending_approval (grant 01M01K6JX3V2WE1KZMDJ4VFAGC); CLI deny --note succeeded (denied by hardik); get_grant returned status=denied denial_code=APPROVAL_DENIED detail='a human denied the request'; explain_grant showed approver='human' (role only, no OS username leak) outcome=denied; audit show has a kind=approval record with outcome=denied, body.approval={approver:hardik, decision:denied, method:cli, note:'S067 deny: not authorized for this task', required_by:rule:0}, denial_code=APPROVAL_DENIED, denied_by=approver, and no access_key_id/mint anywhere.",
+  "evidence": "request_grant(profile=approval-gated,logs.read) -> {status:pending_approval, grant_id:01M01K6JX3V2WE1KZMDJ4VFAGC}. taskgrant deny --note 'S067 deny: not authorized for this task' <id> -> 'grant 01M01K6JX3V2WE1KZMDJ4VFAGC: denied by hardik'. get_grant -> {denial_code:APPROVAL_DENIED, detail:'a human denied the request', status:denied}. explain_grant -> {approver:'human', outcome:denied, denial_code:APPROVAL_DENIED} (agent sees role only). audit show --json <id>: second record kind=approval outcome=denied, body.approval.note='S067 deny: not authorized for this task', body.approval.approver='hardik', method='cli', denial_code=APPROVAL_DENIED, denied_by='approver'; no minted_at/access_key_id present.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{profile:approval-gated, capabilities:[logs.read /aws/lambda/invoice-processor], duration_seconds:900}'",
+    "taskgrant deny --config config.yaml --note 'S067 deny: not authorized for this task' 01M01K6JX3V2WE1KZMDJ4VFAGC",
+    "mcp-call --tool get_grant --args '{grant_id:01M01K6JX3V2WE1KZMDJ4VFAGC}'",
+    "mcp-call --tool explain_grant --args '{grant_id:01M01K6JX3V2WE1KZMDJ4VFAGC}'",
+    "taskgrant audit show --config config.yaml --json 01M01K6JX3V2WE1KZMDJ4VFAGC"
+  ]
+}

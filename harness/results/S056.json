@@ -1,0 +1,12 @@
+{
+  "scenario": "S056",
+  "verdict": "pass",
+  "invariant": "I2",
+  "expected": "For any successful mint the decision-log/audit record must carry policy_chars (the compiled policy byte size) and the STS PackedPolicySize; the size budget (G6) is logged on every mint.",
+  "observed": "A clean auto-approved mint of s3.read-prefix (grant 01M01K4B94PJ9JJ6S3FNV56GW2) produced an audit record whose body contains policy_chars=534 (and max_policy_chars=1748), and whose sts block contains packed_policy_size_percent=6. G6.size-budget guardrail is recorded as 'policy is 534 chars of 1748 budget'. Both required fields are present.",
+  "evidence": "request_grant (agent-056, profile default, s3.read-prefix bucket=acme-invoices-prod prefix=2026/) -> status active, grant_id 01M01K4B94PJ9JJ6S3FNV56GW2, assumed-role ARN arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-056-01M01K4B94PJ9JJ6S3FNV56GW2 (secret+session_token present, redacted). taskgrant audit show --config config.yaml --json 01M01K4B94PJ9JJ6S3FNV56GW2 -> body.policy_chars=534, body.max_policy_chars=1748, body.guardrails[G6.size-budget].detail='policy is 534 chars of 1748 budget' verdict pass, body.sts.packed_policy_size_percent=6. Audit record is hash-chained (seq 109, prev_hash/hash present).",
+  "commands": [
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-056.token --tool request_grant --raw --args '{\"task\":\"Read invoice objects under 2026/ in acme-invoices-prod to total revenue\",\"reason\":\"scenario S056, audit-size verification\",\"profile\":\"default\",\"capabilities\":[{\"id\":\"s3.read-prefix\",\"params\":{\"bucket\":\"acme-invoices-prod\",\"prefix\":\"2026/\"}}],\"duration_seconds\":900}'",
+    "/Users/hardik/Development/taskgrant/harness/bin/taskgrant audit show --config /Users/hardik/Development/taskgrant/harness/config.yaml --json 01M01K4B94PJ9JJ6S3FNV56GW2"
+  ]
+}

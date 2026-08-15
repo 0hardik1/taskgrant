@@ -1,0 +1,15 @@
+{
+  "scenario": "S010",
+  "verdict": "pass",
+  "invariant": "G8",
+  "expected": "A single request_grant carrying three structured capabilities (s3.read-prefix + sqs.consume + logs.read) sits exactly at the max-3 boundary and must auto-approve and mint: one policy covering all three, only enumerated actions (no wildcard Action, I2), aws:RequestedRegion condition present (G5), SourceIdentity tg-<grant_ulid>, full audit record.",
+  "observed": "request_grant returned status active with credentials delivered once; scope_summary listed all three capabilities (s3.read-prefix v3, sqs.consume v1, logs.read v1; 10 actions). explain_grant showed G8.capability-count pass '3 capabilities of max 3' and all guardrails pass (G6 warn only, 1641/1748 chars). policy_json had 6 statements, all Actions enumerated (logs/s3/sqs, zero wildcards), each with StringEquals aws:RequestedRegion=us-east-1 and aws:ResourceAccount=000000000000. Minted STS creds returned assumed-role ARN arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-010-01M017742KZ3JACY5XEZPKW8MR. Audit record complete: source_identity tg-01M017742KZ3JACY5XEZPKW8MR, granted_duration_seconds 900, policy_chars 1641, token_fingerprint present, secret/session token absent from record. release_grant succeeded (status released). The explanation.statements array expands per-Sid (6 rows) which is cosmetic; scope_summary, capabilities list, and guardrails all correctly report 3 distinct capabilities.",
+  "evidence": "request_grant --raw -> status:active, grant_id 01M017742KZ3JACY5XEZPKW8MR, credentials present (secret/session_token redacted); scope_summary 's3.read-prefix v3, sqs.consume v1, logs.read v1; 10 actions'. explain_grant guardrails: G8.capability-count pass '3 capabilities of max 3'; G0-G5,G7,G8 pass; G6 warn '1641 chars of 1748'. policy_json Actions all enumerated, no '*' in any Action element; every statement Condition StringEquals aws:RequestedRegion us-east-1. sts get-caller-identity -> Arn arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-010-01M017742KZ3JACY5XEZPKW8MR. audit show --json seq 18: source_identity tg-01M017742KZ3JACY5XEZPKW8MR, matcher.structured true with 3 confidence-1.0 candidates, granted_duration_seconds 900, policy_chars 1641, no secret_access_key/session_token in record. release_grant -> status released.",
+  "commands": [
+    "mcp-call --tool request_grant --args {task,reason,profile:default,capabilities:[s3.read-prefix{acme-invoices-prod,2026/}, sqs.consume{invoice-events}, logs.read{/aws/lambda/invoice-processor}],duration_seconds:900} --raw",
+    "mcp-call --tool explain_grant --args {grant_id:01M017742KZ3JACY5XEZPKW8MR} --raw",
+    "awslocal sts get-caller-identity (with minted creds)",
+    "taskgrant audit show --config config.yaml --json 01M017742KZ3JACY5XEZPKW8MR",
+    "mcp-call --tool release_grant --args {grant_id:01M017742KZ3JACY5XEZPKW8MR,outcome:succeeded,note:...} --raw"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "scenario": "S042",
+  "verdict": "pass",
+  "invariant": "I5",
+  "expected": "Five identical request_grant calls fired in parallel with the same idempotency_key must dedupe to one grant and exactly one STS mint; repeats return the existing grant state and never a second credential delivery.",
+  "observed": "All 5 parallel calls (exit 0, no transport errors) returned the same grant_id 01M01K2G8WPTNRZY7ZVDB4CKTN. Only one call (call 1) came back status=active with credentials/access_key_id present; the other 4 returned the same grant_id with no credentials (they observed the grant's current state, transiently pending_approval, during the race). The decision log holds exactly ONE grant_decision record for that grant_id (seq 89, outcome auto_approved, access_key_id LSIAQAAAAAAAD2JA3TI2, granted_duration_seconds 900, idempotency_key S042-parallel-1786759954-32033), proving a single mint. Exactly one credential delivery across all five responses.",
+  "evidence": "KEY=S042-parallel-1786759954-32033; agent-042 fired 5 parallel `mcp-call request_grant` (s3.read-prefix bucket=acme-invoices-prod prefix=2026/, same idempotency_key). Results: call1 grant_id=01M01K2G8WPTNRZY7ZVDB4CKTN status=active has_creds=True; calls 2-5 grant_id=01M01K2G8WPTNRZY7ZVDB4CKTN status=pending_approval has_creds=False. All 5 stderr empty (exit 0). grep access_key_id out_*.json -> only out_1.json matches (1 of 5). `taskgrant audit show --json 01M01K2G8WPTNRZY7ZVDB4CKTN` returned a single record array (len=1): seq=89 kind=grant_decision outcome=auto_approved access_key_id=LSIAQAAAAAAAD2JA3TI2 idempotency_key=S042-parallel-1786759954-32033, all guardrails G0-G4 pass. No secret_access_key or session_token in the audit JSON.",
+  "commands": [
+    "lsof -nP -iTCP:8770 -sTCP:LISTEN  -> taskgrant PID 80039 listening (broker up)",
+    "for i in 1..5: mcp-call --token-file tokens/agent-042.token --tool request_grant --args-file args.json --raw  (fired in parallel, same idempotency_key)",
+    "python parse of out_1..5.json -> all grant_id=01M01K2G8WPTNRZY7ZVDB4CKTN; only call 1 active+creds",
+    "grep -c access_key_id out_*.json -> only out_1.json:1, rest 0",
+    "taskgrant audit show --config config.yaml --json 01M01K2G8WPTNRZY7ZVDB4CKTN -> 1 record, one mint (access_key_id present, outcome auto_approved)"
+  ]
+}

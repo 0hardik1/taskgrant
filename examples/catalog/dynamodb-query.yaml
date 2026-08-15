@@ -1,0 +1,18 @@
+id: dynamodb.query
+version: 1
+summary: Query and read items from an allowlisted DynamoDB table
+match:
+  keywords: [query, read, get, lookup, items]
+  service_prefixes: [dynamodb]
+  examples:
+    - "look up the customer rows in the invoices table"
+actions: [dynamodb:Query, dynamodb:GetItem, dynamodb:BatchGetItem]
+access_ceiling: Read
+params:
+  table: {type: arn_component, allowlist_ref: dynamodb-tables}
+resources:
+  - {template: 'arn:aws:dynamodb:*:*:table/{table}', for_actions: [dynamodb:Query, dynamodb:GetItem, dynamodb:BatchGetItem]}
+  - {template: 'arn:aws:dynamodb:*:*:table/{table}/index/*', for_actions: [dynamodb:Query]}
+max_duration_seconds: 900
+requires_approval: false
+managed_policy: false

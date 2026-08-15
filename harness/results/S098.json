@@ -1,0 +1,14 @@
+{
+  "scenario": "S098",
+  "verdict": "pass",
+  "invariant": "I3",
+  "expected": "A grant requested with agent-098's valid bearer but a spoofed caller_ref claiming another agent must be attributed to agent-098 everywhere, with caller_ref stored only as untrusted correlation and never used in any authorization or revocation condition.",
+  "observed": "request_grant as agent-098 with caller_ref='agent-201' auto-approved and minted (grant 01M01KD79WHK8BF72HCHZZEWX8). Attribution is agent-098 everywhere: audit top-level agent_id=agent-098, body.agent_id=agent-098, session_tags['taskgrant:agent']=agent-098, source_identity=tg-01M01KD79WHK8BF72HCHZZEWX8, assumed_role_arn/role_session_name=tg-agent-098-<grant>. The spoofed value survives only as the non-authoritative body.caller_ref='agent-201' and the non-transitive session tag taskgrant:caller_ref='agent-201'; it does NOT appear in policy_json (conditions use only aws:RequestedRegion, aws:ResourceAccount, s3:prefix) and is absent from transitive_tag_keys ([taskgrant:agent, taskgrant:grant]). Minted credential's sts get-caller-identity returned the agent-098 assumed-role ARN, not agent-201. token_fingerprint=c66a80ab, transport=http, auth_method=bearer.",
+  "evidence": "mcp-call request_grant token-file agent-098.token, caller_ref='agent-201' -> status active, grant_id 01M01KD79WHK8BF72HCHZZEWX8. taskgrant audit show --json 01M01KD79WHK8BF72HCHZZEWX8: agent_id=agent-098; body.caller_ref='agent-201'; body.sts.session_tags={taskgrant:agent:agent-098, taskgrant:caller_ref:agent-201, taskgrant:grant:01M01KD79WHK8BF72HCHZZEWX8, taskgrant:profile:default}; transitive_tag_keys=[taskgrant:agent, taskgrant:grant]; assumed_role_arn=arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-098-01M01KD79WHK8BF72HCHZZEWX8; policy_json Condition keys = aws:RequestedRegion, aws:ResourceAccount, s3:prefix (no caller_ref). Minted-cred sts get-caller-identity Arn=arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-098-01M01KD79WHK8BF72HCHZZEWX8 (secret and session_token present, values redacted). release_grant -> status released.",
+  "commands": [
+    "mcp-call --token-file tokens/agent-098.token --tool request_grant --args '{...capabilities s3.read-prefix acme-invoices-prod 2026/..., \"caller_ref\":\"agent-201\"}'  => status active, grant_id 01M01KD79WHK8BF72HCHZZEWX8",
+    "taskgrant audit show --config config.yaml --json 01M01KD79WHK8BF72HCHZZEWX8  => agent_id agent-098, caller_ref agent-201 stored as tag only, not transitive, not in policy conditions",
+    "AWS_ACCESS_KEY_ID=LSIAQAAAAAAAGIYS5BFF (minted) awslocal sts get-caller-identity  => Arn assumed-role/taskgrant-default/tg-agent-098-01M01KD79WHK8BF72HCHZZEWX8",
+    "mcp-call --token-file tokens/agent-098.token --tool release_grant --args '{\"grant_id\":\"01M01KD79WHK8BF72HCHZZEWX8\",\"outcome\":\"succeeded\"}'  => status released"
+  ]
+}

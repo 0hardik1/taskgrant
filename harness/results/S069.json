@@ -1,0 +1,15 @@
+{
+  "scenario": "S069",
+  "verdict": "pass",
+  "invariant": "I5",
+  "expected": "Approving the same pending grant a second time is a no-op error; the grant mints exactly once and credentials cross the boundary once.",
+  "observed": "request on approval-gated profile parked pending_approval; first `approve` succeeded ('approved (minted) by hardik', exit 0); second `approve` returned ALREADY_DECIDED and exit 1 with no side effect; get_grant returned status active with credentials once (access_key_id LSIAQAAAAAAAKGDY2TRC, secret/session redacted); audit show has exactly two records: one pending_approval decision and one approval record (seq 271, outcome approved, approver hardik, single minted_at 2026-08-15T02:15:38Z) — no second mint.",
+  "evidence": "request_grant (approval-gated, dynamodb.query table=invoices) -> {status: pending_approval, grant_id 01M01K7Z2RFC583XYEQDD7EPAT}. approve #1 -> 'grant 01M01K7Z2RFC583XYEQDD7EPAT: approved (minted) by hardik' exit=0. approve #2 -> 'taskgrant: approve: ALREADY_DECIDED: the approval was already decided' exit=1. get_grant -> status active, credentials present, access_key_id LSIAQAAAAAAAKGDY2TRC. audit show --json: total records 2 (seq 268 grant_decision/pending_approval; seq 271 approval/approved, approver=hardik, minted_at 2026-08-15T02:15:38.635045Z). Exactly one approval + one mint.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{profile:approval-gated, capabilities:[dynamodb.query table=invoices], duration_seconds:900}' -> pending_approval, grant 01M01K7Z2RFC583XYEQDD7EPAT",
+    "taskgrant approve --config config.yaml --note 'scenario S069 first approve' 01M01K7Z2RFC583XYEQDD7EPAT -> approved (minted) by hardik (exit 0)",
+    "taskgrant approve --config config.yaml --note 'scenario S069 second approve' 01M01K7Z2RFC583XYEQDD7EPAT -> ALREADY_DECIDED (exit 1)",
+    "mcp-call --tool get_grant -> status active, credentials present, access_key_id LSIAQAAAAAAAKGDY2TRC",
+    "taskgrant audit show --config config.yaml --json 01M01K7Z2RFC583XYEQDD7EPAT -> 2 records: pending_approval + single approval/approved (minted once)"
+  ]
+}

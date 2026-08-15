@@ -1,0 +1,13 @@
+{
+  "scenario": "S099",
+  "verdict": "fail",
+  "invariant": "I5",
+  "expected": "The grant_decision audit record of a successful (auto_approved) grant must carry both a token_fingerprint of 8 hex chars and a remote_addr, per ARCHITECTURE 9.1 and the transport-auth expect text ('the decision log records token fingerprint and remote address for granted requests').",
+  "observed": "Minting a grant as agent-099 auto_approved (grant 01M01KD82N5X5WC7A86C6HS6J1). The grant_decision record carries token_fingerprint='a474eb72' (valid 8-hex, passes) and transport='http', auth_method='bearer', but remote_addr is entirely absent: the key does not exist in the body of either the audit CLI JSON or the decisions.jsonl mirror (broker listens on TCP 127.0.0.1:8770, so a loopback remote address was available but was not recorded). token_fingerprint half passes; remote_addr half fails, so the record does not carry both fields the spec requires.",
+  "evidence": "request_grant (agent-099, s3.read-prefix acme-invoices-prod prefix 2026/) -> status active, grant_id 01M01KD82N5X5WC7A86C6HS6J1, secret/session_token present (redacted). taskgrant audit show --config config.yaml --json 01M01KD82N5X5WC7A86C6HS6J1: grant_decision body scalar keys = [agent_id, auth_method, catalog_hash, config_hash, dataset_hash, decided_at, expiration, grant_id, granted_duration_seconds, kind, max_policy_chars, minted_at, outcome, policy_chars, policy_json, profile, reason, received_at, record_id, requested_duration_seconds, schema_version, synth_version, task, token_fingerprint, transport]. token_fingerprint='a474eb72' (re.fullmatch [0-9a-f]{8} -> True). remote_addr = None ('remote_addr' not in body). decisions.jsonl for same grant_id: 'remote_addr' in body = False; full-record string contains 'remote_addr' = False; token_fingerprint='a474eb72'.",
+  "commands": [
+    "mcp-call --tool request_grant --token-file tokens/agent-099.token --args {s3.read-prefix acme-invoices-prod 2026/, profile default} -> status active grant 01M01KD82N5X5WC7A86C6HS6J1",
+    "taskgrant audit show --config config.yaml --json 01M01KD82N5X5WC7A86C6HS6J1 -> token_fingerprint=a474eb72 (8 hex), remote_addr absent",
+    "grep grant_id run/decisions.jsonl -> remote_addr not present in record, token_fingerprint=a474eb72"
+  ]
+}

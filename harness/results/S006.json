@@ -1,0 +1,15 @@
+{
+  "scenario": "S006",
+  "verdict": "pass",
+  "invariant": "I2",
+  "expected": "request_grant with a structured sqs.produce hint (queue=invoice-events) auto-approves and mints a grant whose policy holds only the enumerated sqs.produce actions with the rendered queue ARN, no wildcards in Action (I2), an aws:RequestedRegion condition (G5), SourceIdentity tg-<grant_ulid>, real STS credentials delivered once, and a full audit record; release succeeds.",
+  "observed": "request_grant returned status active, outcome auto_approved, grant_id 01M017718QCK62P3CME1BDWQR5, credentials present once. policy_json = Action [sqs:GetQueueAttributes, sqs:SendMessage] (no wildcards), Resource arn:aws:sqs:*:*:invoice-events, Condition StringEquals aws:RequestedRegion=us-east-1 and aws:ResourceAccount=000000000000. All guardrails G0-G8 pass. source_identity tg-01M017718QCK62P3CME1BDWQR5; assumed_role_arn arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-006-01M017718QCK62P3CME1BDWQR5. Minted creds gave a live sts get-caller-identity with that same assumed-role ARN. audit show carries the full record (policy_chars 279, granted_duration 900, token_fingerprint, transport http). release_grant returned status released, outcome succeeded.",
+  "evidence": "request_grant -> {status:active, outcome auto_approved (via audit), grant_id 01M017718QCK62P3CME1BDWQR5, scope_summary 'sqs.produce v1; 2 actions'}. explain_grant policy_json: {\"Statement\":[{\"Sid\":\"TgSqsProduce0\",\"Effect\":\"Allow\",\"Action\":[\"sqs:GetQueueAttributes\",\"sqs:SendMessage\"],\"Resource\":\"arn:aws:sqs:*:*:invoice-events\",\"Condition\":{\"StringEquals\":{\"aws:RequestedRegion\":\"us-east-1\",\"aws:ResourceAccount\":\"000000000000\"}}}]} ; G5.mandatory-conditions verdict pass. audit show --json: source_identity tg-01M017718QCK62P3CME1BDWQR5, access_key_id LSIAQAAAAAAAGI753MMB, no secret/session in record. minted-cred sts get-caller-identity: Arn arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-006-01M017718QCK62P3CME1BDWQR5 (secret/session redacted). release_grant -> status released, outcome succeeded.",
+  "commands": [
+    "mcp-call --tool request_grant --args {task,reason,profile:default,capabilities:[{id:sqs.produce,params:{queue:invoice-events}}],duration_seconds:900}",
+    "mcp-call --tool explain_grant --args-file {grant_id:01M017718QCK62P3CME1BDWQR5} --raw",
+    "taskgrant audit show --config config.yaml --json 01M017718QCK62P3CME1BDWQR5",
+    "AWS_ACCESS_KEY_ID=... AWS_SESSION_TOKEN=... awslocal sts get-caller-identity",
+    "mcp-call --tool release_grant --args-file {grant_id:...,outcome:succeeded,note:'S006 done'} --raw"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "scenario": "S087",
+  "verdict": "pass",
+  "invariant": "G7",
+  "expected": "A request for duration_seconds 1800 on the short-cap profile (profile cap 900) auto-approves and mints, but the effective duration clamps to 900 seconds rather than erroring; the audit record shows requested 1800 and granted 900.",
+  "observed": "request_grant on profile short-cap with duration_seconds 1800 returned status active with a real STS credential; audit shows requested_duration_seconds 1800, granted_duration_seconds 900; G7.duration-clamp passed with detail 'effective 900s = min(request 900s, capability cap 900s, profile cap 900s, global cap 3600s), floor 900s'; credential Expiration 2026-08-15T02:32:23Z is exactly 900s after decided_at 2026-08-15T02:17:23Z; assumed-role ARN arn:aws:sts::000000000000:assumed-role/taskgrant-short-cap/tg-agent-087-01M01KB9TRYTJHAMMX7BWHDQTD.",
+  "evidence": "mcp-call request_grant profile=short-cap duration_seconds=1800 capabilities=[logs.read log_group=/aws/lambda/invoice-processor] -> status active, grant_id 01M01KB9TRYTJHAMMX7BWHDQTD, expires_at 2026-08-15T02:32:23Z. taskgrant audit show --json 01M01KB9TRYTJHAMMX7BWHDQTD -> requested_duration_seconds:1800, granted_duration_seconds:900, profile:short-cap, guardrail G7.duration-clamp verdict pass detail 'effective 900s = min(request 900s, capability cap 900s, profile cap 900s, global cap 3600s), floor 900s'; sts.role_arn role/taskgrant-short-cap, expiration 02:32:23.036Z vs decided_at 02:17:23.033Z = 900s. Secret and session token present once in mint response, value redacted.",
+  "commands": [
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-087.token --tool request_grant --args '{\"task\":\"Read recent log events from the invoice-processor log group to check processing errors\",\"reason\":\"scenario S087, duration clamp check\",\"profile\":\"short-cap\",\"capabilities\":[{\"id\":\"logs.read\",\"params\":{\"log_group\":\"/aws/lambda/invoice-processor\"}}],\"duration_seconds\":1800}'",
+    "/Users/hardik/Development/taskgrant/harness/bin/taskgrant audit show --config /Users/hardik/Development/taskgrant/harness/config.yaml --json 01M01KB9TRYTJHAMMX7BWHDQTD"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "scenario": "S081",
+  "verdict": "pass",
+  "invariant": "I4",
+  "expected": "The broker log file must contain zero occurrences of a minted grant's secret_access_key or session_token values; only the access key id and grant id may appear.",
+  "observed": "After minting grant 01M01KA79JNRGQFJ0PXSEFG9QZ (logs.read, active) as agent-081, grepping run/broker.log and run/decisions.jsonl for the exact secret_access_key and session_token strings returned 0 hits in every case, while the access key id LSIAQAAAAAAAFINRK46Q (1 hit) and the grant id (1 hit) were present, proving the grant was logged without leaking secret material.",
+  "evidence": "mcp-call request_grant (agent-081, logs.read on /aws/lambda/invoice-processor) -> status active, grant_id 01M01KA79JNRGQFJ0PXSEFG9QZ, credentials delivered once (access_key_id LSIAQAAAAAAAFINRK46Q, secret present [value redacted], session_token present [value redacted]). grep -c -F over broker.log: secret=0, token=0. grep -c -F over decisions.jsonl: secret=0, token=0. grep -c -F access_key_id in broker.log=1; grep -c -F grant_id in broker.log=1.",
+  "commands": [
+    "lsof -nP -iTCP:8770 -sTCP:LISTEN  -> broker listening (pid 80039); admin.sock present",
+    "./bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file ./tokens/agent-081.token --tool request_grant --args '{\"task\":\"scenario S081...\",\"reason\":\"scenario S081 credential secrecy check\",\"profile\":\"default\",\"capabilities\":[{\"id\":\"logs.read\",\"params\":{\"log_group\":\"/aws/lambda/invoice-processor\"}}],\"duration_seconds\":900}' --raw  -> status active, grant_id 01M01KA79JNRGQFJ0PXSEFG9QZ",
+    "grep -c -F \"$SECRET\" run/broker.log  -> 0",
+    "grep -c -F \"$SESSION_TOKEN\" run/broker.log  -> 0",
+    "grep -c -F \"$SECRET\" run/decisions.jsonl  -> 0",
+    "grep -c -F \"$SESSION_TOKEN\" run/decisions.jsonl  -> 0",
+    "grep -c -F LSIAQAAAAAAAFINRK46Q run/broker.log  -> 1 (access key id, allowed)",
+    "grep -c -F 01M01KA79JNRGQFJ0PXSEFG9QZ run/broker.log  -> 1 (grant id present)"
+  ]
+}

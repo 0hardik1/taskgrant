@@ -1,0 +1,14 @@
+{
+  "scenario": "S074",
+  "verdict": "pass",
+  "invariant": "I3",
+  "expected": "explain_grant issued by agent-074 against a live grant owned by agent-201 must return NOT_FOUND (not FORBIDDEN), with wording indistinguishable from a never-issued grant id, and the target grant must stay valid for its owner.",
+  "observed": "Minted a live active grant 01M01K9MA1A62JK1KQGJ675CBH as agent-201. explain_grant on it as agent-074 returned status error, error_code NOT_FOUND, detail 'no such grant' (exit 0). A never-issued ULID as agent-074 returned a byte-identical NOT_FOUND / 'no such grant' body. Control: agent-201 explain_grant on the same id still returns its full explanation, so the grant remains active for its owner and existence was not confirmed to the other agent.",
+  "evidence": "request_grant (agent-201) -> status active, grant_id 01M01K9MA1A62JK1KQGJ675CBH. explain_grant (agent-074) grant_id=01M01K9MA1A62JK1KQGJ675CBH -> {\"detail\":\"no such grant\",\"error_code\":\"NOT_FOUND\",\"status\":\"error\"}, exit=0. explain_grant (agent-074) grant_id=01M0000000000000000000000X (never issued) -> {\"detail\":\"no such grant\",\"error_code\":\"NOT_FOUND\",\"status\":\"error\"}, exit=0 (identical shape and wording). Control explain_grant (agent-201) on the real id -> approver=auto, capabilities s3.read-prefix v3 (owner still sees it).",
+  "commands": [
+    "mcp-call --token-file tokens/agent-201.token --tool request_grant --args '{...s3.read-prefix acme-invoices-prod 2026/...}'  => status active, grant_id 01M01K9MA1A62JK1KQGJ675CBH",
+    "mcp-call --token-file tokens/agent-074.token --tool explain_grant --args '{\"grant_id\":\"01M01K9MA1A62JK1KQGJ675CBH\"}'  => NOT_FOUND 'no such grant', exit 0",
+    "mcp-call --token-file tokens/agent-074.token --tool explain_grant --args '{\"grant_id\":\"01M0000000000000000000000X\"}'  => NOT_FOUND 'no such grant', exit 0 (identical)",
+    "mcp-call --token-file tokens/agent-201.token --tool explain_grant --args '{\"grant_id\":\"01M01K9MA1A62JK1KQGJ675CBH\"}'  => full explanation, owner unaffected"
+  ]
+}

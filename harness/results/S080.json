@@ -1,0 +1,17 @@
+{
+  "scenario": "S080",
+  "verdict": "pass",
+  "invariant": "I4",
+  "expected": "The decision-log record for a minted grant (taskgrant audit show --json) must store the minted access_key_id but never the secret_access_key or session_token; grepping the whole JSON for those secret values returns zero hits.",
+  "observed": "Grant 01M01K9ZW527PGQHM10GDV3JBW minted active as agent-080 (s3.read-prefix, acme-invoices-prod, prefix 2026/). audit show --json returned a 7181-byte record containing access_key_id (LSIAQAAAAAAADWBHVPRU) at two locations (mint block and STS block). The secret_access_key value and session_token value from the mint response appear zero times. No key named secret_access_key or session_token exists, and the substring 'secret' does not appear anywhere in the JSON. Only access_key_id, token_fingerprint, role_session_name, and session_tags are present.",
+  "evidence": "mint: mcp-call request_grant -> status active, grant_id 01M01K9ZW527PGQHM10GDV3JBW, credentials delivered once (access_key_id LSIAQAAAAAAADWBHVPRU, secret + session_token redacted).\ntaskgrant audit show --config config.yaml --json 01M01K9ZW527PGQHM10GDV3JBW (exit 0, 7181 bytes).\ngrep -c 'LSIAQAAAAAAADWBHVPRU' -> 2 (access_key_id present).\ngrep -c '<secret value>' -> 0 ; grep -c '<session_token prefix FQoGZXIvYXdzEBYaDKu>' -> 0.\ngrep -io 'secret' -> 0 hits in the whole JSON.\nkey-name census: 2 access_key_id, 1 role_session_name, 1 session_tags, 1 token_fingerprint; no secret_access_key, no session_token key.\naccess_key_id appears at lines 12 (mint block) and 158 (STS block).",
+  "commands": [
+    "mcp-call --url http://127.0.0.1:8770/mcp --token-file tokens/agent-080.token --tool request_grant --args '{task,reason,profile:default,capabilities:[{id:s3.read-prefix,params:{bucket:acme-invoices-prod,prefix:2026/}}],duration_seconds:900}'  -> status active, grant_id 01M01K9ZW527PGQHM10GDV3JBW",
+    "taskgrant audit show --config config.yaml --json 01M01K9ZW527PGQHM10GDV3JBW > s080_audit.json  (exit 0)",
+    "grep -c 'LSIAQAAAAAAADWBHVPRU' s080_audit.json  -> 2",
+    "grep -c 'V8ZszGO53cgWbQwCQw3ZflXCOSzzLs9wFKDGmQVI' s080_audit.json  -> 0",
+    "grep -c 'FQoGZXIvYXdzEBYaDKu' s080_audit.json  -> 0",
+    "grep -io 'secret' s080_audit.json  -> 0 hits",
+    "grep -oE '\"[a-z_]*(access_key|secret|token|session)[a-z_]*\"' s080_audit.json | sort | uniq -c  -> 2 access_key_id, 1 role_session_name, 1 session_tags, 1 token_fingerprint"
+  ]
+}

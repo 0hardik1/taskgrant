@@ -1,0 +1,14 @@
+{
+  "scenario": "S095",
+  "verdict": "pass",
+  "invariant": "none",
+  "expected": "A raw HTTP POST to /mcp with NO Authorization header must be rejected with 401 before any tool executes, and must leave no record in the decision log.",
+  "observed": "curl POST tools/list with no Authorization header returned HTTP/1.1 401 Unauthorized, body 'no bearer token' (Content-Length 16), no JSON-RPC tool result and no tool dispatch. No decision-log record is attributable to the unauthenticated probe (all decisions.jsonl entries in the window carry real agent ids from the shared fleet; an unauthenticated request has no identity to log). A healthy list_capabilities as agent-095 afterward exited 0, proving the broker stayed up.",
+  "evidence": "curl -s -i -X POST http://127.0.0.1:8770/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}'  ->  HTTP/1.1 401 Unauthorized / X-Content-Type-Options: nosniff / Content-Length: 16 / body: 'no bearer token'. decisions.jsonl tail in window shows only authenticated fleet agents (agent-085/089/092), none from the no-auth probe. Follow-up: mcp-call --tool list_capabilities as agent-095 exit=0 (broker healthy).",
+  "commands": [
+    "lsof -nP -iTCP:8770 -sTCP:LISTEN  -> taskgrant PID 80039 LISTEN 127.0.0.1:8770",
+    "curl -s -i -X POST http://127.0.0.1:8770/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}'  -> HTTP/1.1 401 Unauthorized, body 'no bearer token'",
+    "tail -3 run/decisions.jsonl  -> only agent-085/089/092 authenticated records, none from the probe",
+    "mcp-call --tool list_capabilities --token-file tokens/agent-095.token  -> exit 0 (broker still up)"
+  ]
+}

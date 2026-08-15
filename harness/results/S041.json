@@ -1,0 +1,14 @@
+{
+  "scenario": "S041",
+  "verdict": "pass",
+  "invariant": "I6",
+  "expected": "Sending request_grant twice sequentially with the same idempotency_key returns the same grant_id both times, mints exactly once, writes exactly one decision record carrying the STS block, and does not redeliver secrets on the repeat (credential_redelivery off).",
+  "observed": "First request_grant (idempotency_key S041-1786759944-idem) minted grant 01M01K25TFNPBEKAMW1WK3KH60 with status active and a full credentials block (access_key_id LSIAQAAAAAAAHMCQO3DZ, secret+token present). The second call with the identical key and body returned the SAME grant_id 01M01K25TFNPBEKAMW1WK3KH60, status active, and carried NO credentials block (no secret redelivery). audit show --json returned exactly one record (seq 84) for the grant with a single sts block (assumed-role arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-041-01M01K25TFNPBEKAMW1WK3KH60), and decisions.jsonl held exactly 1 record for the grant_id. No second mint occurred.",
+  "evidence": "Call 1: mcp-call request_grant s3.read-prefix {bucket=acme-invoices-prod, prefix=2026/} idempotency_key=S041-1786759944-idem -> structured_content.grant_id=01M01K25TFNPBEKAMW1WK3KH60, status=active, credentials present (secret present, value redacted).\nCall 2: identical args/key -> grant_id=01M01K25TFNPBEKAMW1WK3KH60 (same), status=active, NO credentials field in structured_content.\ntaskgrant audit show --config config.yaml --json 01M01K25TFNPBEKAMW1WK3KH60 -> single record seq 84, kind grant_decision, outcome auto_approved, one body.sts block (access_key_id LSIAQAAAAAAAHMCQO3DZ, minted_at 2026-08-15T02:12:24.024743Z, idempotency_key S041-1786759944-idem).\ngrep -c 01M01K25TFNPBEKAMW1WK3KH60 run/decisions.jsonl -> 1.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{... s3.read-prefix bucket=acme-invoices-prod prefix=2026/ ... idempotency_key=S041-1786759944-idem}'  (call 1 -> grant_id 01M01K25TFNPBEKAMW1WK3KH60, status active, credentials present)",
+    "mcp-call --tool request_grant --args '{... identical body, same idempotency_key}'  (call 2 -> same grant_id, status active, NO credentials block)",
+    "taskgrant audit show --config config.yaml --json 01M01K25TFNPBEKAMW1WK3KH60  (one record seq 84 with one sts block)",
+    "grep -c 01M01K25TFNPBEKAMW1WK3KH60 run/decisions.jsonl  (-> 1)"
+  ]
+}

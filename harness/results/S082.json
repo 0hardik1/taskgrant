@@ -1,0 +1,14 @@
+{
+  "scenario": "S082",
+  "verdict": "pass",
+  "invariant": "I4",
+  "expected": "explain_grant returns the emitted policy and guardrail verdicts but never carries credential material (secret/session token/credentials block absent).",
+  "observed": "explain_grant on grant 01M01KA9X6SH2EWBM71WMPFK20 returned status active with policy_json, task/reason, approver 'auto', and all 11 guardrail verdicts (G0-G8, rate, creep) each 'pass'; top-level keys were [approver, capabilities, grant_id, guardrails, outcome, policy_json, reason, status, task] with no credentials/access_key_id/secret_access_key/session_token fields, and grepping the raw output for the minted secret and session-token values returned 0 hits.",
+  "evidence": "request_grant (agent-082, s3.read-prefix bucket=acme-invoices-prod prefix=2026/) -> status active, grant_id 01M01KA9X6SH2EWBM71WMPFK20, credentials delivered once (access_key_id LSIAQAAAAAAAMWLFTLYR, secret+token present in mint response, values redacted). explain_grant --raw on that id -> keys ['approver','capabilities','grant_id','guardrails','outcome','policy_json','reason','status','task']; policy_json present (2 statements, s3:GetObject/GetObjectVersion/ListBucket, aws:RequestedRegion + aws:ResourceAccount conditions); guardrails all verdict=pass. Scans: grep -Eic 'secret_access_key|session_token|\"credentials\"|access_key_id' = 0; grep for secret value 'PeJD9RwOprqaE1PxxKARrEbPutoz1lTNge7LP' = 0; grep for session token 'FQoGZXIvYXdzEBYaDmERFHl' = 0.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{task,reason,profile:default,capabilities:[s3.read-prefix bucket=acme-invoices-prod prefix=2026/],duration_seconds:900}' -> active, grant_id 01M01KA9X6SH2EWBM71WMPFK20",
+    "mcp-call --tool explain_grant --args '{\"grant_id\":\"01M01KA9X6SH2EWBM71WMPFK20\"}' --raw -> policy_json + guardrails present, no credentials keys",
+    "grep -Eic 'secret_access_key|session_token|\"credentials\"|access_key_id' on explain output -> 0",
+    "grep -c '<secret value>' / '<session token value>' on explain output -> 0 / 0"
+  ]
+}

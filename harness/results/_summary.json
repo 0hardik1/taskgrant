@@ -1,0 +1,802 @@
+[
+ {
+  "s": "S001",
+  "n": 1,
+  "fam": "happy-structured",
+  "verdict": "pass",
+  "inv": "I2",
+  "summary": "status active on request_grant with credentials delivered once; grant_id 01M01774G4WA1ZQXY49QBXS519. policy_json actions are exactly s3:GetObject, s3:GetObjectVersion, s3:ListBucke"
+ },
+ {
+  "s": "S002",
+  "n": 2,
+  "fam": "happy-structured",
+  "verdict": "pass",
+  "inv": "I2",
+  "summary": "status active with credentials delivered exactly once in the request_grant response; grant_id 01M01776BE18FC49X8MGSWG0Z2. policy_json holds two Allow statements: TgS3ReadPrefix0 Ac"
+ },
+ {
+  "s": "S003",
+  "n": 3,
+  "fam": "happy-structured",
+  "verdict": "pass",
+  "inv": "I2",
+  "summary": "request_grant returned status pending_approval (grant 01M01778C9Q9RX5FJAST1E52AK), correct for the requires_approval capability on the default profile. taskgrant approve over the a"
+ },
+ {
+  "s": "S004",
+  "n": 4,
+  "fam": "happy-structured",
+  "verdict": "pass",
+  "inv": "I2",
+  "summary": "Grant 01M017759SFPE1EM4N88FXN5B7 returned status active with credentials delivered exactly once in the request_grant response. Policy has 2 statements, actions dynamodb:BatchGetIte"
+ },
+ {
+  "s": "S005",
+  "n": 5,
+  "fam": "happy-structured",
+  "verdict": "pass",
+  "inv": "I2",
+  "summary": "Grant 01M0176ZWRT30DZRG2XHPPVCTA returned status active with credentials present exactly once (delivered in the request_grant response). Policy = Action [sqs:DeleteMessage, sqs:Get"
+ },
+ {
+  "s": "S006",
+  "n": 6,
+  "fam": "happy-structured",
+  "verdict": "pass",
+  "inv": "I2",
+  "summary": "request_grant returned status active, outcome auto_approved, grant_id 01M017718QCK62P3CME1BDWQR5, credentials present once. policy_json = Action [sqs:GetQueueAttributes, sqs:SendMe"
+ },
+ {
+  "s": "S007",
+  "n": 7,
+  "fam": "happy-structured",
+  "verdict": "pass",
+  "inv": "I2",
+  "summary": "status active, grant_id 01M01770K6BW4R4ABJVYDQE8K1, credentials delivered exactly once in the request_grant response. Policy has 3 statements enumerating logs:DescribeLogGroups, lo"
+ },
+ {
+  "s": "S008",
+  "n": 8,
+  "fam": "happy-structured",
+  "verdict": "pass",
+  "inv": "I2",
+  "summary": "request_grant returned status pending_approval (grant 01M01772YB8AXTXTPCVWN9ZXPN), which is correct per env.json for a requires_approval capability. taskgrant approve over the admi"
+ },
+ {
+  "s": "S009",
+  "n": 9,
+  "fam": "happy-structured",
+  "verdict": "pass",
+  "inv": "I2",
+  "summary": "Grant 01M0177865DM62ETAXPZW2DF8P returned status active with credentials delivered once. explain_grant shows a single policy_json with 3 statements (s3 GetObject/GetObjectVersion, "
+ },
+ {
+  "s": "S010",
+  "n": 10,
+  "fam": "happy-structured",
+  "verdict": "pass",
+  "inv": "G8",
+  "summary": "request_grant returned status active with credentials delivered once; scope_summary listed all three capabilities (s3.read-prefix v3, sqs.consume v1, logs.read v1; 10 actions). exp"
+ },
+ {
+  "s": "S011",
+  "n": 11,
+  "fam": "keyword-match",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "request_grant with only free text ('download the invoice files from the invoices bucket, prefix 2026/') and no capabilities returned exit 0, status denied, denial_code NEEDS_STRUCT"
+ },
+ {
+  "s": "S012",
+  "n": 12,
+  "fam": "keyword-match",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "request_grant returned exit 0 with status=denied, denial_code=NEEDS_STRUCTURED_HINTS (the spec-compliant path (b): score below 0.50, pointing at list_capabilities). Nothing was min"
+ },
+ {
+  "s": "S013",
+  "n": 13,
+  "fam": "keyword-match",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "request_grant with only task/reason free text (no capabilities) returned status denied, denial_code NEEDS_STRUCTURED_HINTS (exit 0, a normal tool result). The rules matcher scored "
+ },
+ {
+  "s": "S014",
+  "n": 14,
+  "fam": "keyword-match",
+  "verdict": "pass",
+  "inv": "none",
+  "summary": "request_grant returned status=denied, denial_code=NEEDS_STRUCTURED_HINTS, detail 'no structured hints and no keyword match; call list_capabilities and retry with a capabilities hin"
+ },
+ {
+  "s": "S015",
+  "n": 15,
+  "fam": "keyword-match",
+  "verdict": "pass",
+  "inv": "none",
+  "summary": "request_grant with only free text 'fetch recent log events from the app log group' and no capabilities returned status=denied, denial_code=NEEDS_STRUCTURED_HINTS (spec path b). Mat"
+ },
+ {
+  "s": "S016",
+  "n": 16,
+  "fam": "keyword-match",
+  "verdict": "pass",
+  "inv": "none",
+  "summary": "request_grant returned exit 0 with status=denied, denial_code=NEEDS_STRUCTURED_HINTS (rules matcher scored dynamodb.query at confidence 0.308, below the 0.50 no-match floor, so tre"
+ },
+ {
+  "s": "S017",
+  "n": 17,
+  "fam": "keyword-match",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "request_grant (no capabilities hints) returned status=denied, denial_code=NEEDS_STRUCTURED_HINTS, detail pointing at list_capabilities; grant_id 01M0178AWXJMEKR2506KWPCFVF was reco"
+ },
+ {
+  "s": "S018",
+  "n": 18,
+  "fam": "keyword-match",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "Variant A (bare 'sync the invoices bucket', no hints) returned status=denied, denial_code=NEEDS_STRUCTURED_HINTS, no credentials, no mint. Variant B (stronger s3 phrasing plus serv"
+ },
+ {
+  "s": "S019",
+  "n": 19,
+  "fam": "prompt-injection",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "Injected request minted active (grant 01M01JYCW1ED33VJQE75PDW7DZ) and control minted active (01M01JYCWRTKWHVRS9ZPN1HC4A). Both policy_json documents are byte-identical after normal"
+ },
+ {
+  "s": "S020",
+  "n": 20,
+  "fam": "prompt-injection",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "Both the injection request and the bland control request auto-approved and minted active grants under profile default. explain_grant.policy_json is byte-identical between the two g"
+ },
+ {
+  "s": "S021",
+  "n": 21,
+  "fam": "prompt-injection",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "Both requests minted an active s3.read-prefix grant. explain_grant.policy_json was byte-for-byte identical (534 chars) between control (grant 01M01JZD1M61Z6B7T2N01G0QB0) and inject"
+ },
+ {
+  "s": "S022",
+  "n": 22,
+  "fam": "prompt-injection",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "Both requests auto-approved and minted (status active) with the same scope_summary 's3.read-prefix v3; 3 actions'. The stored policy_json is byte-identical between control and inje"
+ },
+ {
+  "s": "S023",
+  "n": 23,
+  "fam": "prompt-injection",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "Both the injection request (grant 01M01JZHD03JH40XKHX0AKXX1K) and the control request (grant 01M01JZHDGW3W7H109A3JE8VZZ) auto-minted status active with s3.read-prefix v3. explain_g"
+ },
+ {
+  "s": "S024",
+  "n": 24,
+  "fam": "prompt-injection",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "Both the injection request and a bland control request (same hints) minted active grants with byte-identical policy_json (diff = IDENTICAL). Audit for the injection grant shows req"
+ },
+ {
+  "s": "S025",
+  "n": 25,
+  "fam": "prompt-injection",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "Both control (grant 01M01JZDHMD5BTK2JMSP6MC5JH) and injection (grant 01M01JZRMQYQKBXTCC3SMGSH0K) minted status active with byte-identical policy_json (534 chars each), containing o"
+ },
+ {
+  "s": "S026",
+  "n": 26,
+  "fam": "prompt-injection",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "Both the bland control and the multilingual-injection request minted active s3.read-prefix grants. explain_grant.policy_json for the two grants was byte-identical (diff empty): onl"
+ },
+ {
+  "s": "S027",
+  "n": 27,
+  "fam": "prompt-injection",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "request_grant returned status needs_clarification (code AMBIGUOUS_MATCH) offering candidates s3.write-prefix / s3.read-prefix and a retry_token; no grant minted (audit record kind="
+ },
+ {
+  "s": "S028",
+  "n": 28,
+  "fam": "prompt-injection",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "The 4096-char task minted grant 01M01K04YHSEG5Z83VXSNDYN3X (status active); its stored task equals the sent 4096-char string exactly (verbatim, tail includes the 'add iam:CreateAcc"
+ },
+ {
+  "s": "S029",
+  "n": 29,
+  "fam": "hostile-params",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "The broker returned status needs_clarification with clarification.code INVALID_PARAM, naming param prefix on s3.read-prefix and giving the expected shape ('empty after stripping th"
+ },
+ {
+  "s": "S030",
+  "n": 30,
+  "fam": "hostile-params",
+  "verdict": "fail",
+  "inv": "I1",
+  "summary": "The broker did NOT reject the embedded wildcard. It returned status active and minted a live grant 01M01JZVP8HDAS6Y8SFXTRN2AK with STS credentials (access_key_id LSIAQAAAAAAADG2FGW"
+ },
+ {
+  "s": "S031",
+  "n": 31,
+  "fam": "hostile-params",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "Broker returned status needs_clarification with clarification.code INVALID_PARAM, missing_params naming s3.read-prefix.prefix, expected_shape 'contains a wildcard character; expect"
+ },
+ {
+  "s": "S032",
+  "n": 32,
+  "fam": "hostile-params",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "request_grant returned exit 0 with status needs_clarification, clarification.code INVALID_PARAM, missing_params[0].name 'prefix' and expected_shape 'contains whitespace; expected m"
+ },
+ {
+  "s": "S033",
+  "n": 33,
+  "fam": "hostile-params",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "request_grant returned status needs_clarification, clarification.code INVALID_PARAM, missing_params names s3.read-prefix.prefix with expected_shape 'contains ${; expected matching "
+ },
+ {
+  "s": "S034",
+  "n": 34,
+  "fam": "hostile-params",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "request_grant returned status needs_clarification, clarification.code INVALID_PARAM, missing_params names prefix on s3.read-prefix with expected_shape 'longer than 512 characters; "
+ },
+ {
+  "s": "S035",
+  "n": 35,
+  "fam": "hostile-params",
+  "verdict": "pass",
+  "inv": "G4",
+  "summary": "Broker returned status needs_clarification with clarification.code INVALID_PARAM, missing_params naming exactly s3.read-prefix.bucket, expected_shape 'not on the s3-buckets allowli"
+ },
+ {
+  "s": "S036",
+  "n": 36,
+  "fam": "hostile-params",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "request_grant returned status needs_clarification with clarification.code INVALID_PARAM naming param 'bucket' on s3.read-prefix, expected_shape 'contains a character outside the ar"
+ },
+ {
+  "s": "S037",
+  "n": 37,
+  "fam": "hostile-params",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "Broker returned status needs_clarification with clarification.code INVALID_PARAM. It named the exact param (s3.read-prefix.bucket), the expected shape said the value 'contains a ch"
+ },
+ {
+  "s": "S038",
+  "n": 38,
+  "fam": "hostile-params",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "The broker returned status needs_clarification, clarification.code INVALID_PARAM, missing_params naming prefix with expected_shape 'contains a control character; expected matching "
+ },
+ {
+  "s": "S039",
+  "n": 39,
+  "fam": "hostile-params",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "The broker rejected the request at the MCP argument-validation boundary: is_error=true, exit 0, message names the exact JSON path (/properties/capabilities/items/properties/params/"
+ },
+ {
+  "s": "S040",
+  "n": 40,
+  "fam": "hostile-params",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "Empty-string required params returned status needs_clarification with clarification.code MISSING_PARAM naming the exact param (prefix / bucket), its expected_shape, and allowlist e"
+ },
+ {
+  "s": "S041",
+  "n": 41,
+  "fam": "idempotency",
+  "verdict": "pass",
+  "inv": "I6",
+  "summary": "First request_grant (idempotency_key S041-1786759944-idem) minted grant 01M01K25TFNPBEKAMW1WK3KH60 with status active and a full credentials block (access_key_id LSIAQAAAAAAAHMCQO3"
+ },
+ {
+  "s": "S042",
+  "n": 42,
+  "fam": "idempotency",
+  "verdict": "pass",
+  "inv": "I5",
+  "summary": "All 5 parallel calls (exit 0, no transport errors) returned the same grant_id 01M01K2G8WPTNRZY7ZVDB4CKTN. Only one call (call 1) came back status=active with credentials/access_key"
+ },
+ {
+  "s": "S043",
+  "n": 43,
+  "fam": "idempotency",
+  "verdict": "pass",
+  "inv": "I6",
+  "summary": "First request_grant (key s043-idem-1786759947) minted grant 01M01K297H3H6PFTWEKRJPKRH3 status active with credentials. The retry with the SAME key and a completely different task t"
+ },
+ {
+  "s": "S044",
+  "n": 44,
+  "fam": "idempotency",
+  "verdict": "pass",
+  "inv": "none",
+  "summary": "Key 's044-key-alpha' minted grant 01M01K26WH6B4GZQB5CPRT0GQ3 (access_key_id LSIAQAAAAAAACA5CZT42), key 's044-key-bravo' minted grant 01M01K26X3TGSQ9R2KR6KZ6ES8 (access_key_id LSIAQ"
+ },
+ {
+  "s": "S045",
+  "n": 45,
+  "fam": "idempotency",
+  "verdict": "pass",
+  "inv": "I5",
+  "summary": "Same key sent twice replayed the identical grant_id 01M01K6F0VT82W831VHT5YCWDV (status active) with NO credentials on the second response (credential_redelivery=false) and NO secon"
+ },
+ {
+  "s": "S046",
+  "n": 46,
+  "fam": "clarification",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "Round 1 returned status needs_clarification, code MISSING_PARAM, missing_params [s3.read-prefix.prefix] with expected_shape '^[A-Za-z0-9_/.=-]{1,512}$ (one trailing * allowed)', ca"
+ },
+ {
+  "s": "S047",
+  "n": 47,
+  "fam": "clarification",
+  "verdict": "pass",
+  "inv": "none",
+  "summary": "request_grant with prefix '*' returned status needs_clarification, code INVALID_PARAM, round 1, grant_id 01M01K2Z8X2Z4V9N4VYB1X1CF5, retry_token issued. Resubmitting with retry_tok"
+ },
+ {
+  "s": "S048",
+  "n": 48,
+  "fam": "clarification",
+  "verdict": "fail",
+  "inv": "none",
+  "summary": "Rounds 1 and 2 returned needs_clarification/INVALID_PARAM on one grant ULID (01M01K36C3RE04DYHH9P03A70A) with round=1 then round=2; the third retry (round-2 token, invalid prefix) "
+ },
+ {
+  "s": "S049",
+  "n": 49,
+  "fam": "clarification",
+  "verdict": "pass",
+  "inv": "I1",
+  "summary": "A signature byte flipped (first sig char n->X, sig byte 0x9c->0x5c) was rejected with status error, error_code INVALID_ARGUMENT, detail 'retry_token: invalid or expired'; the grant"
+ },
+ {
+  "s": "S050",
+  "n": 50,
+  "fam": "clarification",
+  "verdict": "fail",
+  "inv": "none",
+  "summary": "The replay was accepted, not rejected. request_grant with the same retry_token after the grant reached active returned status active (exit 0) with NO rejection, and the broker perf"
+ },
+ {
+  "s": "S051",
+  "n": 51,
+  "fam": "clarification",
+  "verdict": "fail",
+  "inv": "I1",
+  "summary": "Agent-051 received a needs_clarification result with a retry_token for grant 01M01K3MX28BR84YP0SVAYCGJ8. Agent-201 then presented that exact retry_token (supplying the missing pref"
+ },
+ {
+  "s": "S052",
+  "n": 52,
+  "fam": "clarification",
+  "verdict": "pass",
+  "inv": "I6",
+  "summary": "Round 1 request (s3.read-prefix, bucket set, prefix omitted) returned status needs_clarification, grant_id 01M01K3XX2A09CPH9D435C58KZ, MISSING_PARAM naming s3.read-prefix.prefix, r"
+ },
+ {
+  "s": "S053",
+  "n": 53,
+  "fam": "budget-size",
+  "verdict": "pass",
+  "inv": "I2",
+  "summary": "Both spec-compliant outcomes were exercised and both held. (1) A 3-entry request (two same-id s3.read-prefix with ~490-char prefixes plus logs.read) minted status=active via the la"
+ },
+ {
+  "s": "S054",
+  "n": 54,
+  "fam": "budget-size",
+  "verdict": "pass",
+  "inv": "I2",
+  "summary": "request_grant returned status active (grant 01M01K4CJQ3HYB2X59FS19XRG8). explain_grant policy_json (1548 chars) rendered the full 512-char prefix untruncated into both the GetObjec"
+ },
+ {
+  "s": "S055",
+  "n": 55,
+  "fam": "budget-size",
+  "verdict": "pass",
+  "inv": "G8",
+  "summary": "request_grant with 4 capabilities returned status=denied, denial_code=GUARDRAIL_VIOLATION, detail 'G8: 4 capabilities requested, maximum 3 per grant' (exit 0, a normal tool result)"
+ },
+ {
+  "s": "S056",
+  "n": 56,
+  "fam": "budget-size",
+  "verdict": "pass",
+  "inv": "I2",
+  "summary": "A clean auto-approved mint of s3.read-prefix (grant 01M01K4B94PJ9JJ6S3FNV56GW2) produced an audit record whose body contains policy_chars=534 (and max_policy_chars=1748), and whose"
+ },
+ {
+  "s": "S057",
+  "n": 57,
+  "fam": "budget-size",
+  "verdict": "pass",
+  "inv": "I6",
+  "summary": "Both identical requests returned status=denied, denial_code=OVER_BUDGET, with a 266-byte detail string that was byte-for-byte identical across the two calls; the entire response ob"
+ },
+ {
+  "s": "S058",
+  "n": 58,
+  "fam": "budget-size",
+  "verdict": "pass",
+  "inv": "I2",
+  "summary": "request_grant for sqs.consume + sqs.produce on queue invoice-events auto-approved to status active. Both capabilities render the identical Resource 'arn:aws:sqs:*:*:invoice-events'"
+ },
+ {
+  "s": "S059",
+  "n": 59,
+  "fam": "rate-creep",
+  "verdict": "pass",
+  "inv": "G8",
+  "summary": "agent-059 was fresh (audit list null). Requests 1-30 all returned status=active with distinct grant_ids; request 31 returned status=denied with denial_code=RATE_LIMITED (detail 'G8"
+ },
+ {
+  "s": "S060",
+  "n": 60,
+  "fam": "rate-creep",
+  "verdict": "pass",
+  "inv": "G8",
+  "summary": "As agent-060 on s3.read-prefix, requests 1-29 minted active grants and the request that hit the 30th consumption returned status=denied with denial_code=RATE_LIMITED, detail 'G8.ra"
+ },
+ {
+  "s": "S061",
+  "n": 61,
+  "fam": "rate-creep",
+  "verdict": "pass",
+  "inv": "G8",
+  "summary": "Exactly 30 s3.read-prefix grants auto-approved for agent-061, then further s3.read-prefix requests returned status=denied denial_code=RATE_LIMITED with detail 'G8.rate-limit: rate "
+ },
+ {
+  "s": "S062",
+  "n": 62,
+  "fam": "rate-creep",
+  "verdict": "pass",
+  "inv": "G8",
+  "summary": "As agent-062 (clean baseline: audit list null, audit scope empty) I requested all 7 distinct catalog capabilities under profile default. 5 auto-approved to active (s3.read-prefix, "
+ },
+ {
+  "s": "S063",
+  "n": 63,
+  "fam": "rate-creep",
+  "verdict": "pass",
+  "inv": "I5",
+  "summary": "As agent-063 (no prior audit history), requests 1-30 of s3.read-prefix on acme-invoices-prod prefix 2026/ all returned status active (exit 0). Request 31 returned status denied, de"
+ },
+ {
+  "s": "S064",
+  "n": 64,
+  "fam": "rate-creep",
+  "verdict": "pass",
+  "inv": "G8",
+  "summary": "request_grant with s3.read-prefix listed 3x (identical params) minted an active grant 01M01K71C9H32BBH7D2N6SE8D5. The audit record shows the two extra hints merged: 'duplicate capa"
+ },
+ {
+  "s": "S065",
+  "n": 65,
+  "fam": "approvals",
+  "verdict": "pass",
+  "inv": "I4",
+  "summary": "request_grant (agent-065, profile approval-gated, s3.read-prefix) returned status pending_approval at 02:14:40Z with no credentials. get_grant while pending returned pending_approv"
+ },
+ {
+  "s": "S066",
+  "n": 66,
+  "fam": "approvals",
+  "verdict": "pass",
+  "inv": "I5",
+  "summary": "request_grant (agent-066, profile approval-gated, logs.read, wait_seconds:30) blocked. The pending grant 01M01K6TRKAA5G4YNA9X29FG02 was listed via 'approvals list'. It was approved"
+ },
+ {
+  "s": "S067",
+  "n": 67,
+  "fam": "approvals",
+  "verdict": "pass",
+  "inv": "none",
+  "summary": "request_grant returned status=pending_approval (grant 01M01K6JX3V2WE1KZMDJ4VFAGC); CLI deny --note succeeded (denied by hardik); get_grant returned status=denied denial_code=APPROV"
+ },
+ {
+  "s": "S068",
+  "n": 68,
+  "fam": "approvals",
+  "verdict": "pass",
+  "inv": "I5",
+  "summary": "request_grant on profile approval-gated returned status pending_approval (grant 01M01K9XTQ1RB7CZ93M0G4KEQ3, pending_expires_at 2026-08-15T02:19:37Z). After the TTL lapsed, get_gran"
+ },
+ {
+  "s": "S069",
+  "n": 69,
+  "fam": "approvals",
+  "verdict": "pass",
+  "inv": "I5",
+  "summary": "request on approval-gated profile parked pending_approval; first `approve` succeeded ('approved (minted) by hardik', exit 0); second `approve` returned ALREADY_DECIDED and exit 1 w"
+ },
+ {
+  "s": "S070",
+  "n": 70,
+  "fam": "approvals",
+  "verdict": "pass",
+  "inv": "I4",
+  "summary": "Request on approval-gated profile parked pending_approval (grant 01M01K81Q7MF1EFDWN0JS5T5BV); admin CLI approve minted it (CLI locally printed 'by hardik'); explain_grant from the "
+ },
+ {
+  "s": "S071",
+  "n": 71,
+  "fam": "approvals",
+  "verdict": "pass",
+  "inv": "I5",
+  "summary": "request_grant on profile approval-gated returned status pending_approval (grant 01M01K89DWBMWP1HDG70G8957K), and the initial decision record (audit seq 273) carried outcome pending"
+ },
+ {
+  "s": "S072",
+  "n": 72,
+  "fam": "approvals",
+  "verdict": "pass",
+  "inv": "I5",
+  "summary": "request_grant on profile=default with capability s3.write-prefix returned status pending_approval (grant 01M01K8HADKP9KXBXE894RBMSP), not an auto-mint. get_grant while pending carr"
+ },
+ {
+  "s": "S073",
+  "n": 73,
+  "fam": "isolation",
+  "verdict": "pass",
+  "inv": "none",
+  "summary": "agent-073 get_grant on agent-201's real active grant 01M01K3MX28BR84YP0SVAYCGJ8 returned exit 0 with structured_content {\"detail\":\"no such grant\",\"error_code\":\"NOT_FOUND\",\"status\":"
+ },
+ {
+  "s": "S074",
+  "n": 74,
+  "fam": "isolation",
+  "verdict": "pass",
+  "inv": "I3",
+  "summary": "Minted a live active grant 01M01K9MA1A62JK1KQGJ675CBH as agent-201. explain_grant on it as agent-074 returned status error, error_code NOT_FOUND, detail 'no such grant' (exit 0). A"
+ },
+ {
+  "s": "S075",
+  "n": 75,
+  "fam": "isolation",
+  "verdict": "pass",
+  "inv": "I2",
+  "summary": "release_grant as agent-075 on agent-201's active grant 01M01K9W5A0TP1AD3DBT4Z9GJ5 returned {status:error, error_code:NOT_FOUND, detail:'no such grant'} (exit 0), byte-identical to "
+ },
+ {
+  "s": "S076",
+  "n": 76,
+  "fam": "isolation",
+  "verdict": "pass",
+  "inv": "I3",
+  "summary": "get_grant as agent-076 on never-issued ULID 01JQZZZZZZZZZZZZZZZZZZZZZZ returned exit 0 with structured_content {detail:'no such grant', error_code:'NOT_FOUND', status:'error'}. A s"
+ },
+ {
+  "s": "S077",
+  "n": 77,
+  "fam": "isolation",
+  "verdict": "pass",
+  "inv": "I4",
+  "summary": "As agent-077, list_capabilities returned profiles == [\"narrow\"] and default_profile == \"narrow\", proving per-agent profile filtering. Control agent-201 returned profiles == [\"defau"
+ },
+ {
+  "s": "S078",
+  "n": 78,
+  "fam": "isolation",
+  "verdict": "pass",
+  "inv": "I3",
+  "summary": "list-tools returned exactly the five spec tools and no admin surface; every admin-shaped tools/call (approve, deny, approvals, approve_grant, revoke, admin) was rejected as 'unknow"
+ },
+ {
+  "s": "S079",
+  "n": 79,
+  "fam": "credentials",
+  "verdict": "pass",
+  "inv": "I4",
+  "summary": "request_grant minted grant 01M01K9R0248XXN33PSMJ5DTSP status active with a credentials block once (access_key_id, secret_access_key, session_token). The immediate get_grant returne"
+ },
+ {
+  "s": "S080",
+  "n": 80,
+  "fam": "credentials",
+  "verdict": "pass",
+  "inv": "I4",
+  "summary": "Grant 01M01K9ZW527PGQHM10GDV3JBW minted active as agent-080 (s3.read-prefix, acme-invoices-prod, prefix 2026/). audit show --json returned a 7181-byte record containing access_key_"
+ },
+ {
+  "s": "S081",
+  "n": 81,
+  "fam": "credentials",
+  "verdict": "pass",
+  "inv": "I4",
+  "summary": "After minting grant 01M01KA79JNRGQFJ0PXSEFG9QZ (logs.read, active) as agent-081, grepping run/broker.log and run/decisions.jsonl for the exact secret_access_key and session_token s"
+ },
+ {
+  "s": "S082",
+  "n": 82,
+  "fam": "credentials",
+  "verdict": "pass",
+  "inv": "I4",
+  "summary": "explain_grant on grant 01M01KA9X6SH2EWBM71WMPFK20 returned status active with policy_json, task/reason, approver 'auto', and all 11 guardrail verdicts (G0-G8, rate, creep) each 'pa"
+ },
+ {
+  "s": "S083",
+  "n": 83,
+  "fam": "credentials",
+  "verdict": "pass",
+  "inv": "I4",
+  "summary": "Minted a short-cap logs.read grant 01M01KBQ3662BR7PX11YDEW8MQ as agent-083: status active, credentials delivered exactly once in the request_grant response, expires_at 2026-08-15T0"
+ },
+ {
+  "s": "S084",
+  "n": 84,
+  "fam": "credentials",
+  "verdict": "pass",
+  "inv": "I4",
+  "summary": "request_grant minted grant 01M01KAXW593MAAW25ZSWTY1WE active with full credentials once; release_grant returned status=released with outcome=succeeded and released_at; get_grant af"
+ },
+ {
+  "s": "S085",
+  "n": 85,
+  "fam": "duration",
+  "verdict": "pass",
+  "inv": "G7",
+  "summary": "Grant 01M01KAX27ND2S6DSKAJ3AA0GQ minted status active with no duration_seconds in the request; audit granted_duration_seconds=900; clamp detail 'effective 900s = min(request 900s, "
+ },
+ {
+  "s": "S086",
+  "n": 86,
+  "fam": "duration",
+  "verdict": "pass",
+  "inv": "G7",
+  "summary": "Grant 01M01KAZW73PGAQSSRJHZM939B minted active. Audit record shows requested_duration_seconds 3600 and granted_duration_seconds 900. Credential expiration 2026-08-15T02:32:12Z is e"
+ },
+ {
+  "s": "S087",
+  "n": 87,
+  "fam": "duration",
+  "verdict": "pass",
+  "inv": "G7",
+  "summary": "request_grant on profile short-cap with duration_seconds 1800 returned status active with a real STS credential; audit shows requested_duration_seconds 1800, granted_duration_secon"
+ },
+ {
+  "s": "S088",
+  "n": 88,
+  "fam": "duration",
+  "verdict": "pass",
+  "inv": "G7",
+  "summary": "request 899 -> status active, granted_duration_seconds 900 (requested_duration_seconds 899), G7.duration-clamp detail 'effective 900s = min(request 900s, capability cap 900s, profi"
+ },
+ {
+  "s": "S089",
+  "n": 89,
+  "fam": "duration",
+  "verdict": "pass",
+  "inv": "G7",
+  "summary": "request_grant with duration_seconds 86400 on profile default returned status active with granted_duration_seconds 900; credential expiration 2026-08-15T02:32:36.27Z is exactly mint"
+ },
+ {
+  "s": "S090",
+  "n": 90,
+  "fam": "release-revoke",
+  "verdict": "pass",
+  "inv": "none",
+  "summary": "Grant 01M01KBKVERCRE1KY8PWH22JKA minted active, then released with outcome=succeeded returning status=released. The release record is stored in the decision log (body/release/outco"
+ },
+ {
+  "s": "S091",
+  "n": 91,
+  "fam": "release-revoke",
+  "verdict": "pass",
+  "inv": "I3",
+  "summary": "First release_grant(outcome=failed) returned status released, released_at 2026-08-15T02:17:49Z. Second release_grant(outcome=failed, different note) returned is_error=false with th"
+ },
+ {
+  "s": "S092",
+  "n": 92,
+  "fam": "release-revoke",
+  "verdict": "pass",
+  "inv": "none",
+  "summary": "release_grant outcome 'meh' returned status error, error_code INVALID_ARGUMENT, detail 'outcome: must be succeeded, failed, or abandoned' (mcp-call exit 0, a normal tool result). A"
+ },
+ {
+  "s": "S093",
+  "n": 93,
+  "fam": "release-revoke",
+  "verdict": "pass",
+  "inv": "I3",
+  "summary": "Revoke applied a Deny statement (Sid tgG01M01KBVPPNK1S971NWF5F3NNXE1786761191) to inline policy taskgrant-revocations on role taskgrant-default. Its Condition is StringEquals aws:P"
+ },
+ {
+  "s": "S094",
+  "n": 94,
+  "fam": "release-revoke",
+  "verdict": "pass",
+  "inv": "I3",
+  "summary": "revoke --profile short-cap attached inline policy taskgrant-revocations to role taskgrant-short-cap with a single statement Sid tgAllE1786803559, Effect Deny, Action *, Resource *,"
+ },
+ {
+  "s": "S095",
+  "n": 95,
+  "fam": "transport-auth",
+  "verdict": "pass",
+  "inv": "none",
+  "summary": "curl POST tools/list with no Authorization header returned HTTP/1.1 401 Unauthorized, body 'no bearer token' (Content-Length 16), no JSON-RPC tool result and no tool dispatch. No d"
+ },
+ {
+  "s": "S096",
+  "n": 96,
+  "fam": "transport-auth",
+  "verdict": "pass",
+  "inv": "none",
+  "summary": "Random 64-hex bearers returned HTTP/1.1 401 Unauthorized with a fixed 14-byte body 'invalid token' and identical headers (Content-Type text/plain, X-Content-Type-Options: nosniff, "
+ },
+ {
+  "s": "S097",
+  "n": 97,
+  "fam": "transport-auth",
+  "verdict": "pass",
+  "inv": "none",
+  "summary": "curl POST /mcp with the expired bearer returned HTTP/1.1 401 Unauthorized, body 'invalid token' (Content-Length 14), for both tools/list and initialize. The message is fully generi"
+ },
+ {
+  "s": "S098",
+  "n": 98,
+  "fam": "transport-auth",
+  "verdict": "pass",
+  "inv": "I3",
+  "summary": "request_grant as agent-098 with caller_ref='agent-201' auto-approved and minted (grant 01M01KD79WHK8BF72HCHZZEWX8). Attribution is agent-098 everywhere: audit top-level agent_id=ag"
+ },
+ {
+  "s": "S099",
+  "n": 99,
+  "fam": "transport-auth",
+  "verdict": "fail",
+  "inv": "I5",
+  "summary": "Minting a grant as agent-099 auto_approved (grant 01M01KD82N5X5WC7A86C6HS6J1). The grant_decision record carries token_fingerprint='a474eb72' (valid 8-hex, passes) and transport='h"
+ },
+ {
+  "s": "S100",
+  "n": 100,
+  "fam": "transport-auth",
+  "verdict": "pass",
+  "inv": "none",
+  "summary": "Malformed JSON body returned HTTP 400 'malformed payload: unmarshaling jsonrpc message: unexpected EOF'; a valid-JSON but non-JSON-RPC body returned HTTP 400 'malformed payload: in"
+ }
+]

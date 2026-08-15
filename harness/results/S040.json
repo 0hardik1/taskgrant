@@ -1,0 +1,16 @@
+{
+  "scenario": "S040",
+  "verdict": "pass",
+  "invariant": "I1",
+  "expected": "request_grant with null or empty-string values for required params (s3.read-prefix bucket/prefix) must be rejected with a clarification/denial naming the exact param and expected shape, never compiled into a policy, with no STS mint (no minted_at, no access_key_id in the audit record).",
+  "observed": "Empty-string required params returned status needs_clarification with clarification.code MISSING_PARAM naming the exact param (prefix / bucket), its expected_shape, and allowlist examples, and produced a clarification-only audit record with no minted_at and no access_key_id. Null-valued required params were rejected at the MCP input boundary by JSON-schema validation (is_error=true, 'type: <invalid> has type null, want string') with no grant_id created and no STS call. No case minted.",
+  "evidence": "CASE A empty prefix -> status needs_clarification, code MISSING_PARAM, missing_params[0]={name:prefix, expected_shape:'matching ^[A-Za-z0-9_/.=-]{1,512}$ (one trailing * allowed)'}, grant_id 01M01K248PGRN9YJKS702QT5TZ, EXIT 0. CASE C empty bucket -> needs_clarification, MISSING_PARAM, missing_params[0]={name:bucket, expected_shape:'value from the s3-buckets allowlist', examples:[acme-invoices-prod, acme-ml-artifacts]}, grant_id 01M01K249A6YJ45YZWTNB5W8C9, EXIT 0. CASE B null prefix (full output) -> is_error true, content text 'validating .../params/additionalProperties: type: <invalid reflect.Value> has type \"null\", want \"string\"', structured_content null, no grant_id. CASE D null bucket -> same schema rejection, empty structured_content. audit show --json 01M01K248PGRN9YJKS702QT5TZ -> single record kind=clarification outcome=needs_clarification, body code MISSING_PARAM; grep of the record for minted_at/access_key_id/secret_access_key/session_token = NONE found. Broker confirmed listening on 127.0.0.1:8770 and admin.sock present.",
+  "commands": [
+    "lsof -nP -iTCP:8770 -sTCP:LISTEN",
+    "mcp-call --tool request_grant s3.read-prefix bucket=acme-invoices-prod prefix=''   (CASE A)",
+    "mcp-call --tool request_grant s3.read-prefix bucket=acme-invoices-prod prefix=null  (CASE B)",
+    "mcp-call --tool request_grant s3.read-prefix bucket='' prefix=2026/                  (CASE C)",
+    "mcp-call --tool request_grant s3.read-prefix bucket=null prefix=2026/                (CASE D)",
+    "taskgrant audit show --config config.yaml --json 01M01K248PGRN9YJKS702QT5TZ"
+  ]
+}

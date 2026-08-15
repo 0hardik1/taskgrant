@@ -1,0 +1,14 @@
+{
+  "scenario": "S091",
+  "verdict": "pass",
+  "invariant": "I3",
+  "expected": "release_grant with outcome failed appends exactly one release record; a second release call on the same grant is rejected-or-idempotent and never appends a second release record.",
+  "observed": "First release_grant(outcome=failed) returned status released, released_at 2026-08-15T02:17:49Z. Second release_grant(outcome=failed, different note) returned is_error=false with the SAME released_at (02:17:49Z) and status released (idempotent no-op, not a new mint/record). audit show has exactly one kind=release record (seq 310) carrying release.note='S091 first release', release.outcome='failed'; the second attempt's note was NOT stored, confirming a single release record chain.",
+  "evidence": "request_grant(agent-091, s3.read-prefix acme-invoices-prod 2026/) -> status active grant_id 01M01KBPQTABCQ0NR1TVATYPCP. release_grant #1 {outcome:failed,note:'S091 first release'} -> exit 0, {status:released, outcome:failed, released_at:2026-08-15T02:17:49Z}. release_grant #2 {outcome:failed,note:'S091 second release attempt'} -> exit 0, is_error:false, IDENTICAL {status:released, released_at:2026-08-15T02:17:49Z} (idempotent, no new release). taskgrant audit show --json 01M01KBPQTABCQ0NR1TVATYPCP -> two records only: seq 304 kind=grant_decision (auto_approved mint), seq 310 kind=release with release={note:'S091 first release', outcome:'failed', released_at:2026-08-15T02:17:49.157216Z}. No second release record; second note absent.",
+  "commands": [
+    "mcp-call --tool request_grant --args {task,reason,profile:default,capabilities:[s3.read-prefix acme-invoices-prod 2026/],duration_seconds:900} -> active 01M01KBPQTABCQ0NR1TVATYPCP",
+    "mcp-call --tool release_grant --args {grant_id:01M01KBPQTABCQ0NR1TVATYPCP,outcome:failed,note:'S091 first release'} -> {status:released,released_at:2026-08-15T02:17:49Z} exit 0",
+    "mcp-call --tool release_grant --args {grant_id:01M01KBPQTABCQ0NR1TVATYPCP,outcome:failed,note:'S091 second release attempt'} -> {status:released,released_at:2026-08-15T02:17:49Z} exit 0 (same timestamp, idempotent)",
+    "taskgrant audit show --config config.yaml --json 01M01KBPQTABCQ0NR1TVATYPCP -> one grant_decision (seq 304) + one release (seq 310, note 'S091 first release'); no second release record"
+  ]
+}

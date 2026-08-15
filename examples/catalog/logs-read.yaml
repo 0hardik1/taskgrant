@@ -1,0 +1,19 @@
+id: logs.read
+version: 1
+summary: Read events and streams from an allowlisted CloudWatch log group
+match:
+  keywords: [logs, tail, filter, events, debug]
+  service_prefixes: [logs]
+  examples:
+    - "read the last hour of logs from the invoice-processor lambda"
+actions: [logs:DescribeLogGroups, logs:DescribeLogStreams, logs:FilterLogEvents, logs:GetLogEvents]
+access_ceiling: Read
+params:
+  log_group: {type: path_prefix, allowlist_ref: log-groups}
+resources:
+  - {template: 'arn:aws:logs:*:*:log-group:{log_group}', for_actions: [logs:DescribeLogGroups, logs:DescribeLogStreams, logs:FilterLogEvents]}
+  - {template: 'arn:aws:logs:*:*:log-group:{log_group}:log-stream:*', for_actions: [logs:GetLogEvents, logs:DescribeLogStreams]}
+max_duration_seconds: 900
+requires_approval: false
+managed_policy: true
+managed_policy_arn: arn:aws:iam::222222222222:policy/taskgrant-logs-read

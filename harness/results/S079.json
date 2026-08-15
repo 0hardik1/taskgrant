@@ -1,0 +1,12 @@
+{
+  "scenario": "S079",
+  "verdict": "pass",
+  "invariant": "I4",
+  "expected": "After minting a grant, get_grant returns status active and carries no credential material (credential_redelivery is false, so secrets cross the boundary only once, in the request_grant response).",
+  "observed": "request_grant minted grant 01M01K9R0248XXN33PSMJ5DTSP status active with a credentials block once (access_key_id, secret_access_key, session_token). The immediate get_grant returned status active with grant_id, expires_at, scope_summary, and explanation, but NO credentials field at all: no access_key_id, no secret_access_key, no session_token.",
+  "evidence": "mcp-call request_grant (agent-079, s3.read-prefix bucket=acme-invoices-prod prefix=2026/) -> structured_content.status=active, grant_id=01M01K9R0248XXN33PSMJ5DTSP, credentials present once (access_key_id LSIAQAAAAAAAKHNNESEO; secret_access_key and session_token present, values redacted). mcp-call get_grant {grant_id:01M01K9R0248XXN33PSMJ5DTSP} (exit 0, is_error false) -> structured_content = {expires_at, explanation, grant_id, scope_summary:'s3.read-prefix v3; 3 actions', status:'active'}; the JSON has no 'credentials' key and no secret/session_token fields.",
+  "commands": [
+    "bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file tokens/agent-079.token --tool request_grant --args '{\"task\":\"Read 2026 invoice objects in acme-invoices-prod to total revenue\",\"reason\":\"scenario S079 credential secrecy check\",\"profile\":\"default\",\"capabilities\":[{\"id\":\"s3.read-prefix\",\"params\":{\"bucket\":\"acme-invoices-prod\",\"prefix\":\"2026/\"}}],\"duration_seconds\":900}'",
+    "bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file tokens/agent-079.token --tool get_grant --args '{\"grant_id\":\"01M01K9R0248XXN33PSMJ5DTSP\"}'"
+  ]
+}

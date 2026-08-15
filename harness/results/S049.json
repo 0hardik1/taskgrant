@@ -1,0 +1,14 @@
+{
+  "scenario": "S049",
+  "verdict": "pass",
+  "invariant": "I1",
+  "expected": "A retry_token tampered by one character is rejected because it is a signed token, and the underlying grant is unaffected (still completable with the valid token).",
+  "observed": "A signature byte flipped (first sig char n->X, sig byte 0x9c->0x5c) was rejected with status error, error_code INVALID_ARGUMENT, detail 'retry_token: invalid or expired'; the grant 01M01K4ZPT99Q0E4GY2STR1PBQ was unharmed and reached active with credentials when retried with the original valid token. Note: an initial one-char change at the final base64 char (Y->Z) only altered ignored padding bits, so the HMAC bytes were unchanged and it validated as expected; a byte-altering change is required for a true tamper and that was correctly rejected.",
+  "evidence": "1) request_grant s3.read-prefix omitting prefix -> status needs_clarification, code MISSING_PARAM, grant_id 01M01K4ZPT99Q0E4GY2STR1PBQ, retry_token eyJnIjoiMDFNMDFLNFpQVDk5UTBFNEdZMlNUUjFQQlEi...nPK6wCyI8PKRlLdZMPOyR-6947bVq9h4ISlARwHLZBo . 2) Tamper first signature char n->X (verified sig byte 0x9cf2bac0 -> 0x5cf2bac0) and resubmit with valid prefix + retry_token -> {\"detail\":\"retry_token: invalid or expired\",\"error_code\":\"INVALID_ARGUMENT\",\"grant_id\":\"01M01K4ZPT99Q0E4GY2STR1PBQ\",\"status\":\"error\"} (mcp-call exit 0, a normal denial result). 3) Resubmit the SAME grant with the ORIGINAL untampered retry_token + valid prefix -> status active, grant_id 01M01K4ZPT99Q0E4GY2STR1PBQ, credentials present. Grant unaffected. (Prior padding-bit-only Y->Z change validated, confirming HMAC is over the real 32 signature bytes, not the trailing 2 padding bits.)",
+  "commands": [
+    "mcp-call --tool request_grant --args '{...capabilities:[{id:s3.read-prefix,params:{bucket:acme-invoices-prod}}]...}'  (-> needs_clarification, retry_token round 1)",
+    "python3: split token on '.', flip sig[0] n->X, verify urlsafe-b64 decoded sig bytes change 9cf2bac0->5cf2bac0",
+    "mcp-call --tool request_grant --args-file args_tamper2.json (retry_token = tampered)  -> error INVALID_ARGUMENT 'retry_token: invalid or expired'",
+    "mcp-call --tool request_grant --args-file args_valid.json (retry_token = original)  -> status active, credentials present, same grant_id"
+  ]
+}

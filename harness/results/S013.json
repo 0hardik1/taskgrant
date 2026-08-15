@@ -1,0 +1,12 @@
+{
+  "scenario": "S013",
+  "verdict": "pass",
+  "invariant": "I1",
+  "expected": "Free text 'consume messages from the ingest queue' with no structured hints must never silently mint; the broker must either return needs_clarification with candidate capability ids (score in [0.50,0.80)) or deny NEEDS_STRUCTURED_HINTS/NO_MATCH (score below 0.50), and mint nothing.",
+  "observed": "request_grant with only task/reason free text (no capabilities) returned status denied, denial_code NEEDS_STRUCTURED_HINTS (exit 0, a normal tool result). The rules matcher scored the single candidate sqs.consume at 0.308, below the 0.50 no-match threshold, so the spec-compliant path (b) denial fired. Audit show for grant 01M017700T19KT9TXF2THG3CCR confirms outcome denied, denied_by synthesizer, no minted_at and no access_key_id: nothing was minted.",
+  "evidence": "mcp-call request_grant (agent-013, profile default, task 'consume messages from the ingest queue', no capabilities) -> {\"denial_code\":\"NEEDS_STRUCTURED_HINTS\",\"detail\":\"no structured hints and no keyword match; call list_capabilities and retry with a capabilities hint\",\"grant_id\":\"01M017700T19KT9TXF2THG3CCR\",\"status\":\"denied\"} exit 0. taskgrant audit show --json 01M017700T19KT9TXF2THG3CCR -> outcome=denied, denied_by=synthesizer, denial_code=NEEDS_STRUCTURED_HINTS, matcher.candidates=[{capability_id: sqs.consume, confidence: 0.308, rationale: 'keyword match: consume'}], no minted_at, no access_key_id. Path (b) of the keyword-match expect occurred; no silent mint.",
+  "commands": [
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-013.token --tool request_grant --args '{\"task\":\"consume messages from the ingest queue\",\"reason\":\"scenario S013, keyword-match family\",\"profile\":\"default\"}'",
+    "/Users/hardik/Development/taskgrant/harness/bin/taskgrant audit show --config /Users/hardik/Development/taskgrant/harness/config.yaml --json 01M017700T19KT9TXF2THG3CCR"
+  ]
+}

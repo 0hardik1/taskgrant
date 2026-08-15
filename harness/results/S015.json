@@ -1,0 +1,12 @@
+{
+  "scenario": "S015",
+  "verdict": "pass",
+  "invariant": "none",
+  "expected": "Free text with no structured hints must never silently mint; a pure keyword match forces either needs_clarification with candidate ids (score in [0.50,0.80)) or a denial NEEDS_STRUCTURED_HINTS/NO_MATCH pointing at list_capabilities (score below 0.50); PASS if either occurs and nothing is minted.",
+  "observed": "request_grant with only free text 'fetch recent log events from the app log group' and no capabilities returned status=denied, denial_code=NEEDS_STRUCTURED_HINTS (spec path b). Matcher scored the best candidate logs.read at confidence 0.308, below the 0.50 no-match threshold. Audit record outcome=denied, denied_by=synthesizer, no minted_at and no access_key_id, so no STS mint occurred. Nothing was silently minted.",
+  "evidence": "mcp-call request_grant (agent-015, no capabilities) -> {\"denial_code\":\"NEEDS_STRUCTURED_HINTS\",\"status\":\"denied\",\"grant_id\":\"01M01781KTA0E4C2R4S1H91Q86\",\"detail\":\"no structured hints and no keyword match; call list_capabilities and retry with a capabilities hint\"} (exit 0, is_error false). taskgrant audit show --json 01M01781KTA0E4C2R4S1H91Q86 -> single grant_decision record: outcome=denied, denial_code=NEEDS_STRUCTURED_HINTS, denied_by=synthesizer, matcher candidate logs.read confidence 0.3081; grep confirmed no minted_at, no access_key_id, no secret/session_token in the record.",
+  "commands": [
+    "./bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file ./tokens/agent-015.token --tool request_grant --args '{\"task\":\"fetch recent log events from the app log group\",\"reason\":\"scenario S015, keyword-match family\",\"profile\":\"default\"}'",
+    "./bin/taskgrant audit show --config ./config.yaml --json 01M01781KTA0E4C2R4S1H91Q86"
+  ]
+}

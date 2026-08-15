@@ -1,0 +1,19 @@
+{
+  "scenario": "S072",
+  "verdict": "pass",
+  "invariant": "I5",
+  "expected": "A capability carrying requires_approval:true in the catalog (s3.write-prefix) must park pending_approval even on the auto-approve default profile; STS mints only at approval; approval delivers credentials exactly once; approver is seen by the agent as role 'human' only.",
+  "observed": "request_grant on profile=default with capability s3.write-prefix returned status pending_approval (grant 01M01K8HADKP9KXBXE894RBMSP), not an auto-mint. get_grant while pending carried no credentials. The grant appeared in the admin approval queue on profile=default. After 'taskgrant approve' over the admin socket, get_grant returned status active with credentials exactly once; a second get_grant carried no credentials (redelivery off). Minted STS creds resolved to assumed-role arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-072-01M01K8HADKP9KXBXE894RBMSP. explain_grant showed approver='human' and no credentials. audit show recorded approval_reasons 'capability s3.write-prefix requires approval', minted_at set only at approval, access_key_id present, secret and session_token absent.",
+  "evidence": "request_grant(profile=default, s3.write-prefix incoming/) -> {\"status\":\"pending_approval\",\"grant_id\":\"01M01K8HADKP9KXBXE894RBMSP\"}. get_grant(pending) -> status pending_approval, no credentials. approvals list showed the grant: 'agent=agent-072 profile=default'. taskgrant approve --note 'scenario S072 approve' -> 'grant 01M01K8HADKP9KXBXE894RBMSP: approved (minted) by hardik'. get_grant(after approve) -> status active with credentials {access_key_id LSIAQAAAAAAAHMJI54PJ, secret present value redacted, session_token present value redacted}. awslocal sts get-caller-identity with minted creds -> Arn arn:aws:sts::000000000000:assumed-role/taskgrant-default/tg-agent-072-01M01K8HADKP9KXBXE894RBMSP. Second get_grant -> no credentials field (redelivery off). explain_grant -> approver 'human', no credentials. audit show --json -> approval.approval_reasons=['capability s3.write-prefix requires approval'], outcome pending_approval then approved, minted_at 2026-08-15T02:16:25Z, access_key_id present, secret absent, session_token absent.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{profile:default, capabilities:[s3.write-prefix bucket=acme-invoices-prod prefix=incoming/], duration_seconds:900}' -> pending_approval",
+    "mcp-call --tool get_grant (pending) -> pending_approval, no credentials",
+    "taskgrant approvals list --config config.yaml -> grant listed profile=default",
+    "taskgrant approve --config config.yaml --note 'scenario S072 approve' 01M01K8HADKP9KXBXE894RBMSP -> approved (minted) by hardik",
+    "mcp-call --tool get_grant (after approve) -> active, credentials once",
+    "awslocal sts get-caller-identity (minted creds) -> assumed-role/taskgrant-default/tg-agent-072-<grant>",
+    "mcp-call --tool get_grant (second poll) -> active, no credentials (redelivery off)",
+    "mcp-call --tool explain_grant -> approver 'human', no credentials",
+    "taskgrant audit show --config config.yaml --json 01M01K8HADKP9KXBXE894RBMSP -> approval_reasons capability s3.write-prefix requires approval; secret and session_token absent"
+  ]
+}

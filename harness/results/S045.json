@@ -1,0 +1,15 @@
+{
+  "scenario": "S045",
+  "verdict": "pass",
+  "invariant": "I5",
+  "expected": "Idempotency dedupe is bounded: a repeated key inside its window replays the existing grant with no second mint and no second secret delivery, and once the key's window (or the grant) has passed a reuse is treated as a fresh request and a new grant is allowed.",
+  "observed": "Same key sent twice replayed the identical grant_id 01M01K6F0VT82W831VHT5YCWDV (status active) with NO credentials on the second response (credential_redelivery=false) and NO second decision record (audit show shows exactly 1 grant_decision/1 access_key_id). A fresh idempotency key produced a distinct new active grant 01M01K7D5RPH6CHF2653A8QDR0 with credentials, exercising the exact created=true mint branch that a post-window reuse takes. The literal same-key post-window re-mint is governed by a hardcoded IdempotencyWindow=time.Hour (internal/broker/broker.go:45), independent of the 900s grant lifetime and not configurable; advancing the clock 1h, editing config, or restarting the broker are all forbidden in this read-only shared harness, so that single branch is confirmed structurally (PutIdempotencyKey replaces an expired row via ON CONFLICT DO UPDATE and returns created=true; DeleteExpiredIdempotencyKeys GCs closed windows) rather than by a wall-clock wait. No deviation from expected behavior was observed on any observable path.",
+  "evidence": "IdempotencyWindow const: internal/broker/broker.go:45 'IdempotencyWindow = time.Hour'. request_grant (key K, agent-045, s3.read-prefix bucket=acme-invoices-prod prefix=2026/) -> grant_id 01M01K6F0VT82W831VHT5YCWDV status=active, credentials present. Repeat same K -> same grant_id 01M01K6F0VT82W831VHT5YCWDV status=active, has_creds=False (no redelivery). taskgrant audit show --json 01M01K6F0VT82W831VHT5YCWDV -> records:1, seq 216 grant_decision auto_approved access_key_id=LSIAQAAAAAAAN674HLRP (single mint). Fresh key K2 -> grant_id 01M01K7D5RPH6CHF2653A8QDR0 status=active has_creds=True (new grant allowed via created=true branch). PutIdempotencyKey (internal/store/security.go:169-211): expires_at<=now falls through to ON CONFLICT DO UPDATE returning created=true; broker/request.go:55-73 replays stored grant only while created=false. secret_access_key/session_token present, values redacted.",
+  "commands": [
+    "sed -n '40,46p' internal/broker/broker.go  # IdempotencyWindow = time.Hour",
+    "mcp-call request_grant --args '{...,\"idempotency_key\":\"s045-<ts>\",...}' (raw) -> grant 01M01K6F0VT82W831VHT5YCWDV active",
+    "mcp-call request_grant --args '{... same key ...}' (raw) -> same grant_id, no credentials field",
+    "taskgrant audit show --config config.yaml --json 01M01K6F0VT82W831VHT5YCWDV -> records:1 grant_decision auto_approved",
+    "mcp-call request_grant --args '{... fresh key s045b-<ts> ...}' -> grant 01M01K7D5RPH6CHF2653A8QDR0 active has_creds=True"
+  ]
+}

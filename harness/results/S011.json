@@ -1,0 +1,12 @@
+{
+  "scenario": "S011",
+  "verdict": "pass",
+  "invariant": "I1",
+  "expected": "Free text with no capability hints must NEVER silently mint; the broker either returns needs_clarification with candidate ids (score in [0.50,0.80)) or a denial NEEDS_STRUCTURED_HINTS/NO_MATCH (score below 0.50), and nothing is minted.",
+  "observed": "request_grant with only free text ('download the invoice files from the invoices bucket, prefix 2026/') and no capabilities returned exit 0, status denied, denial_code NEEDS_STRUCTURED_HINTS. The rules matcher scored a single candidate s3.read-prefix at confidence 0.308 (below the 0.50 no-match threshold, per 5.4), so path (b) occurred. The audit record shows outcome denied, denied_by synthesizer, no mint (no minted_at, no access_key_id). Nothing was minted.",
+  "evidence": "mcp-call request_grant (agent-011, profile default, no capabilities) -> structured_content {\"denial_code\":\"NEEDS_STRUCTURED_HINTS\",\"detail\":\"no structured hints and no keyword match; call list_capabilities and retry with a capabilities hint\",\"grant_id\":\"01M0176YV1WB6F7T450M15C0ZQ\",\"status\":\"denied\"}, is_error false, exit 0. taskgrant audit show --json 01M0176YV1WB6F7T450M15C0ZQ -> kind grant_decision, outcome denied, denied_by synthesizer, denial_code NEEDS_STRUCTURED_HINTS, matcher.rules candidate {capability_id: s3.read-prefix, confidence 0.3081, rationale 'keyword match: download'}, no STS/mint fields present. This is spec-compliant path (b); PASS since no silent mint.",
+  "commands": [
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-011.token --tool request_grant --args '{\"task\":\"download the invoice files from the invoices bucket, prefix 2026/\",\"reason\":\"scenario S011 keyword-match\",\"profile\":\"default\"}'",
+    "/Users/hardik/Development/taskgrant/harness/bin/taskgrant audit show --config /Users/hardik/Development/taskgrant/harness/config.yaml --json 01M0176YV1WB6F7T450M15C0ZQ"
+  ]
+}

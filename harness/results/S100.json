@@ -1,0 +1,17 @@
+{
+  "scenario": "S100",
+  "verdict": "pass",
+  "invariant": "none",
+  "expected": "Malformed JSON-RPC and an oversized (5 MB) request body must produce clean protocol errors (no crash, no stack trace) and the broker must stay up, provable with a follow-up healthy request.",
+  "observed": "Malformed JSON body returned HTTP 400 'malformed payload: unmarshaling jsonrpc message: unexpected EOF'; a valid-JSON but non-JSON-RPC body returned HTTP 400 'malformed payload: invalid message version tag \"\"; expected \"2.0\"'; a ~5 MB body returned HTTP 413 'request body exceeds 4194304 bytes' (Connection: close) in 3.6 ms, enforcing a 4 MiB cap. All responses carried X-Content-Type-Options: nosniff and no stack trace. A follow-up mcp-call --list-tools returned the five spec tools with exit 0, proving the broker stayed up.",
+  "evidence": "PROBE 1 (broken JSON, valid bearer): curl -X POST http://127.0.0.1:8770/mcp -H 'Accept: application/json, text/event-stream' -H 'Authorization: Bearer <agent-100>' --data '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",' => HTTP/1.1 400 Bad Request, body 'malformed payload: unmarshaling jsonrpc message: unexpected EOF'. PROBE 2 (valid JSON, invalid JSON-RPC): --data '{\"not\":\"jsonrpc\",\"foo\":123}' => HTTP/1.1 400 Bad Request, body 'malformed payload: invalid message version tag \"\"; expected \"2.0\"'. PROBE 3 (5242984-byte body, giant grant_id string): curl --data-binary @big.json => http_code=413 time_total=0.003610; headers: HTTP/1.1 100 Continue then HTTP/1.1 413 Request Entity Too Large, Connection: close, body 'request body exceeds 4194304 bytes'. HEALTH: mcp-call --list-tools => 200/exit 0, tools = [explain_grant, get_grant, list_capabilities, release_grant, request_grant]. Broker still LISTEN on 127.0.0.1:8770 (pid 80039).",
+  "commands": [
+    "lsof -nP -iTCP:8770 -sTCP:LISTEN",
+    "curl -s -i -X POST http://127.0.0.1:8770/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -H \"Authorization: Bearer $TOKEN\" --data '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",'",
+    "curl -s -i -X POST http://127.0.0.1:8770/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -H \"Authorization: Bearer $TOKEN\" --data '{\"not\":\"jsonrpc\",\"foo\":123}'",
+    "python3 build 5242984-byte JSON body with a 5MiB grant_id string",
+    "curl -s -o /dev/null -w 'http_code=%{http_code} time_total=%{time_total}\\n' -X POST http://127.0.0.1:8770/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -H \"Authorization: Bearer $TOKEN\" --data-binary @big.json",
+    "curl -s -i (same, headers) => 413",
+    "/Users/hardik/Development/taskgrant/harness/bin/mcp-call --url http://127.0.0.1:8770/mcp --token-file /Users/hardik/Development/taskgrant/harness/tokens/agent-100.token --list-tools ; echo exit=$?"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "scenario": "S060",
+  "verdict": "pass",
+  "invariant": "G8",
+  "expected": "Once the 30/h per (agent, capability) token bucket is exhausted, request_grant returns a clean RATE_LIMITED denial that carries a machine-readable denial code and contains no live credentials (no minted STS material in the response or the audit record).",
+  "observed": "As agent-060 on s3.read-prefix, requests 1-29 minted active grants and the request that hit the 30th consumption returned status=denied with denial_code=RATE_LIMITED, detail 'G8.rate-limit: rate limit exhausted (30/h per agent and capability): s3.read-prefix', a grant_id, and no credential fields. A repeat and a fresh confirmation call returned the identical RATE_LIMITED shape. grep of the denial responses for access_key_id/secret_access_key/session_token/credentials found nothing. audit show for the denied grant shows outcome=denied, denied_by=guardrail:G8.rate-limit, G8.rate-limit verdict=fail, and NO minted_at / access_key_id / credential block (no STS call on the denial path).",
+  "evidence": "Loop of 31 request_grant calls (agent-060, s3.read-prefix bucket=acme-invoices-prod prefix=2026/, all exit 0): reqs returned 'active' until the bucket cap, then 'denied | RATE_LIMITED'. First RATE_LIMITED structured_content: {\"denial_code\":\"RATE_LIMITED\",\"detail\":\"G8.rate-limit: rate limit exhausted (30/h per agent and capability): s3.read-prefix\",\"grant_id\":\"01M01K5X9GPY3M6118B4Q5YJWR\",\"status\":\"denied\"}. grep -iE 'secret_access_key|session_token|access_key_id|credentials|SecretAccessKey|SessionToken|AccessKeyId' over the RATE_LIMITED responses => NO credential fields found. Full MCP envelope: is_error=false, content[] text mirrors the structured denial, no creds. taskgrant audit show --config config.yaml --json 01M01K5X9GPY3M6118B4Q5YJWR => outcome=denied, denied_by=guardrail:G8.rate-limit, guardrails[].G8.rate-limit verdict=fail, no minted_at, no access_key_id, denial_code=RATE_LIMITED, token_fingerprint=8497adf2, transport=http.",
+  "commands": [
+    "for i in $(seq 1 31); do mcp-call --url http://127.0.0.1:8770/mcp --token-file tokens/agent-060.token --tool request_grant --args '{\"task\":\"Read 2026 invoice objects to total revenue\",\"reason\":\"scenario S060 rate-limit probe\",\"profile\":\"default\",\"capabilities\":[{\"id\":\"s3.read-prefix\",\"params\":{\"bucket\":\"acme-invoices-prod\",\"prefix\":\"2026/\"}}],\"duration_seconds\":900}' --raw; done",
+    "grep -iE 'secret_access_key|session_token|access_key_id|\"credentials\"|SecretAccessKey|SessionToken|AccessKeyId' resp_30.json resp_31.json  # => NO credential fields found",
+    "bin/mcp-call ... --tool request_grant ...  # non-raw envelope: is_error=false, only denial fields, no creds",
+    "bin/taskgrant audit show --config config.yaml --json 01M01K5X9GPY3M6118B4Q5YJWR  # outcome=denied, G8.rate-limit fail, no minted_at/access_key_id"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "scenario": "S065",
+  "verdict": "pass",
+  "invariant": "I4",
+  "expected": "On the approval-gated profile the grant parks pending_approval with no credentials, STS is called only when a human approves over the admin socket, and after approval get_grant polls to active delivering credentials exactly once with minted_at later than the request time.",
+  "observed": "request_grant (agent-065, profile approval-gated, s3.read-prefix) returned status pending_approval at 02:14:40Z with no credentials. get_grant while pending returned pending_approval, still no credentials. taskgrant approve over the admin socket at 02:15:18Z minted the grant. Poll 1 of get_grant returned status active WITH credentials (access_key_id LSIAQAAAAAAAO4DMMZV5, secret and session token present); poll 2 returned status active with NO credential fields (redelivery off). audit show has two decision records: the request record carries no sts/access_key_id, and the mint record carries body.minted_at 2026-08-15T02:15:18.387324Z (later than request 02:14:40Z), approval.approver hardik, approval.note 'scenario S065', assumed_role_arn arn:aws:sts::000000000000:assumed-role/taskgrant-approval-gated/tg-agent-065-<grant>. Minted creds returned an assumed-role ARN of the profile role, proving the mint path is real. Duration clamped to 900s (min chain).",
+  "evidence": "REQUEST_TIME=2026-08-15T02:14:40Z; request_grant -> {status: pending_approval, grant_id 01M01K6BCNKJHZ0WVHDNAKKHFQ, pending_expires_at 02:17:40Z, no credentials}. get_grant (pending) -> status pending_approval, no credentials. approvals list showed the grant as agent=agent-065 profile=approval-gated. APPROVE_TIME=2026-08-15T02:15:18Z; 'taskgrant approve --note scenario S065' -> 'approved (minted) by hardik'. get_grant poll 1 -> status active, credentials{access_key_id LSIAQAAAAAAAO4DMMZV5, secret present (redacted), session_token present (redacted), expiration 02:30:18Z}. get_grant poll 2 -> status active, NO credentials block (redelivery off). audit show --json: record0 request (no access_key_id); record1 body.minted_at=2026-08-15T02:15:18.387324Z, body.approval.approver=hardik, body.approval.note='scenario S065', sts.assumed_role_arn=arn:aws:sts::000000000000:assumed-role/taskgrant-approval-gated/tg-agent-065-01M01K6BCNKJHZ0WVHDNAKKHFQ, source_identity=tg-01M01K6BCNKJHZ0WVHDNAKKHFQ. sts get-caller-identity with minted creds -> Arn arn:aws:sts::000000000000:assumed-role/taskgrant-approval-gated/tg-agent-065-01M01K6BCNKJHZ0WVHDNAKKHFQ.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{profile:approval-gated, s3.read-prefix bucket=acme-invoices-prod prefix=2026/, duration 900}' -> pending_approval, grant 01M01K6BCNKJHZ0WVHDNAKKHFQ",
+    "mcp-call --tool get_grant (while pending) -> pending_approval, no credentials",
+    "taskgrant approvals list --config config.yaml",
+    "taskgrant approve --config config.yaml --note 'scenario S065' 01M01K6BCNKJHZ0WVHDNAKKHFQ -> approved (minted) by hardik",
+    "mcp-call --tool get_grant (poll 1) -> active WITH credentials",
+    "mcp-call --tool get_grant (poll 2) -> active, NO credentials (redelivery off)",
+    "taskgrant audit show --config config.yaml --json 01M01K6BCNKJHZ0WVHDNAKKHFQ -> minted_at 02:15:18Z, approver hardik, note, sts assumed_role_arn",
+    "awslocal sts get-caller-identity (minted creds) -> assumed-role/taskgrant-approval-gated/tg-agent-065-<grant>"
+  ]
+}

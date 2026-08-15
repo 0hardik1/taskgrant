@@ -1,0 +1,18 @@
+{
+  "scenario": "S071",
+  "verdict": "pass",
+  "invariant": "I5",
+  "expected": "A grant requested under the approval-gated profile parks durably as pending_approval with no STS call; after a human approval over the admin socket the grant reaches active and mints credentials exactly once on the poll; the broker-restart durability sub-check is skipped by design because no restart helper exists (env.json note).",
+  "observed": "request_grant on profile approval-gated returned status pending_approval (grant 01M01K89DWBMWP1HDG70G8957K), and the initial decision record (audit seq 273) carried outcome pending_approval with no minted_at and no STS block, proving no mint before approval. taskgrant approve over the admin socket minted the grant (minted_at 2026-08-15T02:16:08Z, later than decided_at 2026-08-15T02:15:44Z, anchor rule 1). The first get_grant poll after approval returned status active with full credentials; a second get_grant returned no credential fields (redelivery off). explain_grant showed approver as role 'human' with no OS username, while the audit approval record stored approver 'hardik' and note. Minted credentials were real STS: sts get-caller-identity returned assumed-role/taskgrant-approval-gated/tg-agent-071-01M01K89DWBMWP1HDG70G8957K. The broker-restart step of S071 was skipped by design (no restart helper; env.json notes and run-scenario.md section 6 direct skipping the S071 restart sub-check).",
+  "evidence": "request_grant (profile approval-gated) -> {\"status\":\"pending_approval\",\"grant_id\":\"01M01K89DWBMWP1HDG70G8957K\",\"pending_expires_at\":\"2026-08-15T02:18:44Z\"}. approvals list showed the grant pending as agent-071. approve: 'grant 01M01K89DWBMWP1HDG70G8957K: approved (minted) by hardik'. get_grant (poll 1) -> status active, credentials present (access_key_id LSIAQAAAAAAAEG2BA676, secret+token present value redacted), expires 2026-08-15T02:31:08Z. get_grant (poll 2) -> status active, NO credentials field (redelivery off). explain_grant -> approver 'human', outcome approved, no username. sts get-caller-identity -> Arn arn:aws:sts::000000000000:assumed-role/taskgrant-approval-gated/tg-agent-071-01M01K89DWBMWP1HDG70G8957K. audit show: seq 273 kind grant_decision outcome pending_approval (no sts/minted_at); seq 285 kind approval outcome approved, minted_at 2026-08-15T02:16:08.966571Z > decided_at 2026-08-15T02:15:44Z, sts block with assumed_role_arn present, approval.approver 'hardik' method cli note 'scenario S071 durable approval'. Restart sub-check skipped by design.",
+  "commands": [
+    "mcp-call --tool request_grant --args '{profile:approval-gated, s3.read-prefix bucket=acme-invoices-prod prefix=2026/}' -> pending_approval 01M01K89DWBMWP1HDG70G8957K",
+    "taskgrant approvals list --config config.yaml --json -> grant pending as agent-071",
+    "taskgrant approve --config config.yaml --note 'scenario S071 durable approval' 01M01K89DWBMWP1HDG70G8957K -> approved (minted) by hardik",
+    "mcp-call --tool get_grant (poll 1) -> active, credentials present once",
+    "mcp-call --tool get_grant (poll 2) -> active, no credentials (redelivery off)",
+    "mcp-call --tool explain_grant -> approver 'human', no username",
+    "awslocal sts get-caller-identity (minted creds) -> assumed-role/taskgrant-approval-gated/tg-agent-071-01M01K89DWBMWP1HDG70G8957K",
+    "taskgrant audit show --config config.yaml --json 01M01K89DWBMWP1HDG70G8957K -> pending_approval record without mint, approval record with minted_at>decided_at and sts block"
+  ]
+}
